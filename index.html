@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Механики вовлечения: практикум по интерактивному дизайну курсов</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <script type="module" src="scripts/main.js" defer></script>
+</head>
+<body data-page="home">
+<header class="site-header">
+    <a class="brand" href="index.html" aria-label="На главную">
+        <span class="brand__mark">LM</span>
+        <span class="brand__text">Механики вовлечения</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button>
+    <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="index.html" data-nav-link>Обзор</a>
+        <a href="pages/project.html" data-nav-link>Проект</a>
+        <a href="pages/module-1.html" data-nav-link>Модули</a>
+    </nav>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero__content">
+            <p class="eyebrow">Онлайн-курс · 10-12 часов · H5P / Lumi Desktop</p>
+            <h1>Механики вовлечения: практикум по интерактивному дизайну курсов</h1>
+            <p class="hero__lead">Каркас курса для методистов, авторов онлайн-курсов и преподавателей без опыта программирования.</p>
+            <div class="hero__actions">
+                <a class="button button--primary" href="pages/module-1.html">Начать с модуля 1</a>
+                <a class="button button--secondary" href="pages/project.html">Посмотреть финальный проект</a>
+            </div>
+        </div>
+        <div class="hero__panel" aria-label="Параметры курса">
+            <dl class="stats-grid">
+                <div>
+                    <dt>8</dt>
+                    <dd>модулей</dd>
+                </div>
+                <div>
+                    <dt>50%+</dt>
+                    <dd>практики в каждом модуле</dd>
+                </div>
+                <div>
+                    <dt>3+</dt>
+                    <dd>механики в финальном уроке</dd>
+                </div>
+                <div>
+                    <dt>0</dt>
+                    <dd>требований к программированию</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <section class="section section--split">
+        <div>
+            <p class="eyebrow">Результаты обучения</p>
+            <h2>После курса слушатель умеет</h2>
+        </div>
+        <ul class="outcomes-list">
+            <li>Выбирать интерактивную механику под образовательную задачу.</li>
+            <li>Проектировать структуру упражнения до реализации в инструменте.</li>
+            <li>Создавать квиз, drag-and-drop упражнение, разветвленный сценарий, элементы геймификации, интерактивное видео или лонгрид.</li>
+            <li>Собирать интерактивный урок и публиковать его в LMS или как веб-страницу.</li>
+        </ul>
+    </section>
+
+    <section class="section">
+        <div class="section__header">
+            <p class="eyebrow">Структура курса</p>
+            <h2>Модули</h2>
+        </div>
+        <div class="module-grid" data-module-grid></div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <p>Каркас курса по техническому заданию. Материалы каждого модуля вынесены на отдельную страницу.</p>
+</footer>
+</body>
+</html>

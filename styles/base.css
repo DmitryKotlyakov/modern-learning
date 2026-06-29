@@ -1,0 +1,78 @@
+:root {
+    --color-ink: #17211b;
+    --color-muted: #5b665f;
+    --color-line: #d8ded8;
+    --color-paper: #fbfaf6;
+    --color-surface: #ffffff;
+    --color-accent: #0f766e;
+    --color-accent-dark: #115e59;
+    --color-accent-soft: #dff4ef;
+    --color-warm: #f3c969;
+    --color-warm-soft: #fff3cb;
+    --color-blue: #315c96;
+    --shadow-sm: 0 8px 24px rgba(23, 33, 27, 0.08);
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+    --content-width: 1180px;
+    --font-main: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    color: var(--color-ink);
+    background: var(--color-paper);
+    font-family: var(--font-main);
+    line-height: 1.55;
+}
+
+img,
+svg {
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+    margin-top: 0;
+}
+
+h1 {
+    max-width: 900px;
+    font-size: clamp(2.4rem, 5vw, 5rem);
+    line-height: 0.98;
+}
+
+h2 {
+    font-size: clamp(1.7rem, 3vw, 2.8rem);
+    line-height: 1.1;
+}
+
+h3 {
+    font-size: 1.15rem;
+    line-height: 1.25;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+::selection {
+    color: var(--color-ink);
+    background: var(--color-warm);
+}
