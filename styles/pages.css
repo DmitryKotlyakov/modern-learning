@@ -1,5 +1,9 @@
 .page-hero {
-    padding: 4rem 0 2rem;
+    padding: 2.75rem 0 1.75rem;
+}
+
+.page-hero h1 {
+    max-width: 1100px;
 }
 
 .page-hero__meta {
@@ -56,6 +60,11 @@
     counter-reset: project-step;
 }
 
+.project-dashboard {
+    display: grid;
+    gap: 1rem;
+}
+
 .project-step {
     position: relative;
     padding-left: 4rem;
@@ -81,5 +90,11 @@
     .module-objectives,
     .timing-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1280px) {
+    .page-hero h1 {
+        max-width: 1180px;
     }
 }

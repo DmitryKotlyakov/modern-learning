@@ -1,6 +1,17 @@
-import { modules } from "./course-data.js";
+import { modules } from "./course-data.js?v=9";
+import { isArtifactComplete, isModuleVisited } from "./site-progress.js?v=9";
 
-const getBasePath = () => (window.location.pathname.includes("/pages/") ? "" : "pages/");
+const getBasePath = () => (window.location.pathname.includes("/pages/") ? "../" : "pages/");
+
+const getCurrentRoute = () => {
+    const path = window.location.pathname.replace(/\/$/, "");
+    return path.split("/").pop() || "index";
+};
+
+const getLinkRoute = (href) => {
+    const cleanHref = href.replace(/\/$/, "").replace(/\.html$/, "");
+    return cleanHref.split("/").pop() || "index";
+};
 
 export function initNavigation() {
     const toggle = document.querySelector(".nav-toggle");
@@ -15,8 +26,10 @@ export function initNavigation() {
 
     document.querySelectorAll("[data-nav-link]").forEach((link) => {
         const href = link.getAttribute("href") ?? "";
-        const current = window.location.pathname.split("/").pop() || "index.html";
-        if (href.endsWith(current) || (current.startsWith("module-") && href.endsWith("module-1.html"))) {
+        const current = getCurrentRoute();
+        const route = getLinkRoute(href);
+
+        if (route === current || (current.startsWith("module-") && route === "module-1")) {
             link.classList.add("is-active");
         }
     });
@@ -43,11 +56,50 @@ export function renderModuleMenu() {
     const menu = document.querySelector("[data-module-menu]");
     if (!menu) return;
 
-    const current = window.location.pathname.split("/").pop();
+    setupModuleMenuToggle(menu);
+
+    const current = getCurrentRoute();
     menu.innerHTML = modules.map((module) => `
-        <a href="${module.slug}" class="${module.slug === current ? "is-active" : ""}">
+        <a href="../${module.slug}" class="${[
+            getLinkRoute(module.slug) === current ? "is-active" : "",
+            isModuleVisited(module.id) ? "is-visited" : "",
+            isArtifactComplete(module.id) ? "is-saved" : ""
+        ].filter(Boolean).join(" ")}">
             <span>${module.id}</span>
             ${module.title}
         </a>
     `).join("");
+}
+
+function setupModuleMenuToggle(menu) {
+    const sidebar = menu.closest(".course-sidebar");
+    if (!sidebar || sidebar.querySelector("[data-module-menu-toggle]")) return;
+
+    if (!menu.id) {
+        menu.id = "module-menu";
+    }
+
+    const toggle = document.createElement("button");
+    toggle.className = "module-menu-toggle";
+    toggle.type = "button";
+    toggle.dataset.moduleMenuToggle = "";
+    toggle.setAttribute("aria-controls", menu.id);
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.innerHTML = `
+        <span>Модули курса</span>
+        <strong>Показать</strong>
+    `;
+
+    toggle.addEventListener("click", () => {
+        const isOpen = menu.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+        toggle.querySelector("strong").textContent = isOpen ? "Скрыть" : "Показать";
+    });
+
+    const title = sidebar.querySelector(".sidebar-title");
+    if (title) {
+        title.insertAdjacentElement("afterend", toggle);
+    } else {
+        sidebar.prepend(toggle);
+    }
 }

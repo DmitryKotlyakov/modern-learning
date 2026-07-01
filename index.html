@@ -1,23 +1,23 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Механики вовлечения: практикум по интерактивному дизайну курсов</title>
-    <link rel="stylesheet" href="styles/style.css">
-    <script type="module" src="scripts/main.js" defer></script>
+    <link rel="stylesheet" href="styles/style.css?v=10">
+    <script type="module" src="scripts/main.js?v=10" defer></script>
 </head>
 <body data-page="home">
 <header class="site-header">
-    <a class="brand" href="index.html" aria-label="На главную">
+    <a class="brand" href="./" aria-label="На главную">
         <span class="brand__mark">LM</span>
         <span class="brand__text">Механики вовлечения</span>
     </a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button>
     <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
-        <a href="index.html" data-nav-link>Обзор</a>
-        <a href="pages/project.html" data-nav-link>Проект</a>
-        <a href="pages/module-1.html" data-nav-link>Модули</a>
+        <a href="./" data-nav-link>Обзор</a>
+        <a href="pages/module-1/" data-nav-link>Модули</a>
+        <a href="pages/project/" data-nav-link>Проект</a>
     </nav>
 </header>
 
@@ -28,8 +28,8 @@
             <h1>Механики вовлечения: практикум по интерактивному дизайну курсов</h1>
             <p class="hero__lead">Каркас курса для методистов, авторов онлайн-курсов и преподавателей без опыта программирования.</p>
             <div class="hero__actions">
-                <a class="button button--primary" href="pages/module-1.html">Начать с модуля 1</a>
-                <a class="button button--secondary" href="pages/project.html">Посмотреть финальный проект</a>
+                <a class="button button--primary" href="pages/module-1/">Начать с модуля 1</a>
+                <a class="button button--secondary" href="pages/project/">Посмотреть финальный проект</a>
             </div>
         </div>
         <div class="hero__panel" aria-label="Параметры курса">
@@ -76,8 +76,6 @@
     </section>
 </main>
 
-<footer class="site-footer">
-    <p>Каркас курса по техническому заданию. Материалы каждого модуля вынесены на отдельную страницу.</p>
-</footer>
+<footer class="site-footer" data-site-footer></footer>
 </body>
 </html>
