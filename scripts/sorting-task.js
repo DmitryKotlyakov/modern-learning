@@ -1,4 +1,5 @@
 let selectedCard = null;
+let draggedRankingItem = null;
 
 function getCards(task) {
     return [...task.querySelectorAll(".sorting-card")];
@@ -118,4 +119,117 @@ function initTask(task) {
 
 export function initSortingTasks() {
     document.querySelectorAll("[data-sorting-task]").forEach(initTask);
+    document.querySelectorAll("[data-ranking-task]").forEach(initRankingTask);
+}
+
+function getRankingItems(task) {
+    return [...task.querySelectorAll("[data-rank-item]")];
+}
+
+function setRankingStatus(task, message, isSuccess = false) {
+    const status = task.querySelector("[data-ranking-status]");
+    if (!status) return;
+
+    status.textContent = message;
+    status.classList.toggle("is-success", isSuccess);
+    status.classList.toggle("is-error", Boolean(message) && !isSuccess);
+}
+
+function clearRankingResults(task) {
+    getRankingItems(task).forEach((item) => {
+        item.classList.remove("is-correct", "is-wrong", "is-drag-over");
+    });
+}
+
+function moveRankingItem(item, direction) {
+    if (direction === "up" && item.previousElementSibling) {
+        item.parentElement.insertBefore(item, item.previousElementSibling);
+    }
+
+    if (direction === "down" && item.nextElementSibling) {
+        item.parentElement.insertBefore(item.nextElementSibling, item);
+    }
+}
+
+function checkRankingTask(task) {
+    const items = getRankingItems(task);
+    let correct = 0;
+
+    items.forEach((item, index) => {
+        const isCorrect = Number(item.dataset.order) === index + 1;
+        item.classList.toggle("is-correct", isCorrect);
+        item.classList.toggle("is-wrong", !isCorrect);
+        if (isCorrect) correct += 1;
+    });
+
+    if (correct === items.length) {
+        setRankingStatus(task, "Порядок верный: вы начали с учебного действия и дошли до проверки готового задания.", true);
+    } else {
+        setRankingStatus(task, `На своих местах ${correct} из ${items.length}. Сначала держите учебную цель, затем элементы, интерфейс, фидбек и сборку.`);
+    }
+}
+
+function shuffleRankingTask(task) {
+    const list = task.querySelector("[data-ranking-list]");
+    const items = getRankingItems(task);
+
+    items
+        .map((item) => ({ item, order: Math.random() }))
+        .sort((left, right) => left.order - right.order)
+        .forEach(({ item }) => list.append(item));
+
+    clearRankingResults(task);
+    setRankingStatus(task, "Шаги перемешаны. Соберите порядок заново.");
+}
+
+function initRankingTask(task) {
+    const list = task.querySelector("[data-ranking-list]");
+    if (!list) return;
+
+    getRankingItems(task).forEach((item) => {
+        item.addEventListener("dragstart", (event) => {
+            draggedRankingItem = item;
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", item.dataset.rankItem);
+        });
+
+        item.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            item.classList.add("is-drag-over");
+        });
+
+        item.addEventListener("dragleave", () => {
+            item.classList.remove("is-drag-over");
+        });
+
+        item.addEventListener("drop", (event) => {
+            event.preventDefault();
+            item.classList.remove("is-drag-over");
+            if (!draggedRankingItem || draggedRankingItem === item) return;
+
+            const insertAfter = event.offsetY > item.offsetHeight / 2;
+            if (insertAfter) {
+                item.after(draggedRankingItem);
+            } else {
+                item.before(draggedRankingItem);
+            }
+            clearRankingResults(task);
+            setRankingStatus(task, "");
+        });
+    });
+
+    task.addEventListener("click", (event) => {
+        const upButton = event.target.closest("[data-rank-up]");
+        const downButton = event.target.closest("[data-rank-down]");
+
+        if (upButton || downButton) {
+            const item = event.target.closest("[data-rank-item]");
+            moveRankingItem(item, upButton ? "up" : "down");
+            clearRankingResults(task);
+            setRankingStatus(task, "");
+        }
+    });
+
+    task.querySelector("[data-ranking-check]")?.addEventListener("click", () => checkRankingTask(task));
+    task.querySelector("[data-ranking-shuffle]")?.addEventListener("click", () => shuffleRankingTask(task));
 }

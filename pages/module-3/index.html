@@ -142,6 +142,55 @@
                 </div>
             </article>
 
+            <article class="lesson-card ranking-task" data-ranking-task>
+                <h2>Интерактивный пример: расставьте шаги проектирования</h2>
+                <p>Упорядочьте этапы подготовки drag-and-drop задания. Правильный порядок помогает сначала удержать учебный смысл, а уже потом переходить к интерфейсу и сборке в инструменте.</p>
+
+                <div class="ranking-list" data-ranking-list aria-label="Шаги проектирования drag-and-drop задания">
+                    <div class="ranking-item" draggable="true" data-rank-item="action" data-order="1">
+                        <span>Определить учебное действие: классифицировать, сопоставить, собрать или упорядочить.</span>
+                        <div class="ranking-item__controls">
+                            <button type="button" data-rank-up aria-label="Поднять шаг">↑</button>
+                            <button type="button" data-rank-down aria-label="Опустить шаг">↓</button>
+                        </div>
+                    </div>
+                    <div class="ranking-item" draggable="true" data-rank-item="elements" data-order="2">
+                        <span>Выбрать карточки, зоны ответа и критерии правильности.</span>
+                        <div class="ranking-item__controls">
+                            <button type="button" data-rank-up aria-label="Поднять шаг">↑</button>
+                            <button type="button" data-rank-down aria-label="Опустить шаг">↓</button>
+                        </div>
+                    </div>
+                    <div class="ranking-item" draggable="true" data-rank-item="layout" data-order="3">
+                        <span>Проверить размер зон, читаемость карточек и удобство на мобильной ширине.</span>
+                        <div class="ranking-item__controls">
+                            <button type="button" data-rank-up aria-label="Поднять шаг">↑</button>
+                            <button type="button" data-rank-down aria-label="Опустить шаг">↓</button>
+                        </div>
+                    </div>
+                    <div class="ranking-item" draggable="true" data-rank-item="feedback" data-order="4">
+                        <span>Добавить фидбек для правильного решения и типичных ошибок.</span>
+                        <div class="ranking-item__controls">
+                            <button type="button" data-rank-up aria-label="Поднять шаг">↑</button>
+                            <button type="button" data-rank-down aria-label="Опустить шаг">↓</button>
+                        </div>
+                    </div>
+                    <div class="ranking-item" draggable="true" data-rank-item="build" data-order="5">
+                        <span>Перенести задание в H5P/Lumi и пройти его как слушатель.</span>
+                        <div class="ranking-item__controls">
+                            <button type="button" data-rank-up aria-label="Поднять шаг">↑</button>
+                            <button type="button" data-rank-down aria-label="Опустить шаг">↓</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sorting-task__actions">
+                    <button class="button button--primary" type="button" data-ranking-check>Проверить</button>
+                    <button class="button button--secondary" type="button" data-ranking-shuffle>Перемешать</button>
+                    <span class="sorting-task__status" data-ranking-status aria-live="polite"></span>
+                </div>
+            </article>
+
             <article class="callout">
                 <h2>Практическое задание</h2>
                 <p>Выберите фрагмент своего урока, где нужно показать связи между элементами: категории, порядок, пары или структуру. Опишите элементы, зоны ответа, критерии правильности и обратную связь для типичной ошибки.</p>
