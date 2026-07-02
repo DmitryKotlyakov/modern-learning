@@ -1,0 +1,100 @@
+.page-hero {
+    padding: 2.75rem 0 1.75rem;
+}
+
+.page-hero h1 {
+    max-width: 1100px;
+}
+
+.page-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.page-hero p {
+    max-width: 760px;
+    color: var(--color-muted);
+    font-size: 1.12rem;
+}
+
+.module-content {
+    display: grid;
+    gap: 1rem;
+}
+
+.module-objectives {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.module-objectives article {
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: var(--color-surface);
+}
+
+.timing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.timing-grid div {
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: var(--color-accent-soft);
+}
+
+.timing-grid strong {
+    display: block;
+    font-size: 1.5rem;
+}
+
+.project-roadmap {
+    display: grid;
+    gap: 1rem;
+    counter-reset: project-step;
+}
+
+.project-dashboard {
+    display: grid;
+    gap: 1rem;
+}
+
+.project-step {
+    position: relative;
+    padding-left: 4rem;
+}
+
+.project-step::before {
+    position: absolute;
+    left: 1.25rem;
+    top: 1.25rem;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: var(--radius-xs);
+    color: #fff;
+    background: var(--color-blue);
+    font-weight: 900;
+    counter-increment: project-step;
+    content: counter(project-step);
+}
+
+@media (max-width: 900px) {
+    .module-objectives,
+    .timing-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1280px) {
+    .page-hero h1 {
+        max-width: 1180px;
+    }
+}

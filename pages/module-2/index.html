@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 2 · Квизы и проверка знаний</title>
+    <link rel="stylesheet" href="../../styles/style.css?v=10">
+    <script type="module" src="../../scripts/main.js?v=10" defer></script>
+</head>
+<body data-page="module" data-module="2">
+<header class="site-header">
+    <a class="brand" href="../../"><span class="brand__mark">LM</span><span class="brand__text">Механики вовлечения</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button>
+    <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="../../" data-nav-link>Обзор</a>
+        <a href="../module-1/" data-nav-link>Модули</a>
+        <a href="../project/" data-nav-link>Проект</a>
+    </nav>
+</header>
+
+<main>
+    <section class="page-hero">
+        <p class="eyebrow">Модуль 2 · 90 мин</p>
+        <h1>Квизы и проверка знаний</h1>
+        <p>Во втором модуле студент превращает проверку знаний из формального теста в учебную механику. Вопросы связываются с результатами обучения, неверные ответы становятся поводом для объяснения, а итоговый квиз помогает слушателю понять, что он уже освоил и где нужно вернуться к материалу.</p>
+        <div class="page-hero__meta">
+            <span class="tag">Quiz</span>
+            <span class="tag">Feedback</span>
+            <span class="tag">H5P / Lumi</span>
+        </div>
+    </section>
+
+    <section class="content-layout">
+        <aside class="course-sidebar">
+            <div class="sidebar-title">Модули курса</div>
+            <nav class="module-menu" data-module-menu aria-label="Навигация по модулям"></nav>
+        </aside>
+
+        <div class="module-content">
+            <div class="module-objectives">
+                <article>
+                    <h3>Цель</h3>
+                    <p>Связать вопросы квиза с учебными результатами, а не с желанием просто «проверить внимательность».</p>
+                </article>
+                <article>
+                    <h3>Практика</h3>
+                    <p>Спроектировать банк вопросов, написать варианты ответов и собрать квиз в H5P/Lumi.</p>
+                </article>
+                <article>
+                    <h3>Результат</h3>
+                    <p>Рабочий квиз с понятной обратной связью и несколькими типами вопросов.</p>
+                </article>
+            </div>
+
+            <article class="lesson-card">
+                <h2>Зачем квиз нужен в онлайн-курсе</h2>
+                <p>Квиз часто воспринимают как финальную проверку или способ поставить балл. В интерактивном курсе он работает шире: помогает удержать внимание, вовремя обнаружить непонимание, дать короткую обратную связь и перевести слушателя от пассивного чтения к решению.</p>
+                <ul class="bullets">
+                    <li>Перед темой квиз может включить предзнания и показать, что слушатель уже понимает.</li>
+                    <li>Внутри темы он помогает остановиться и проверить ключевую мысль до перехода дальше.</li>
+                    <li>После темы квиз показывает, насколько слушатель готов применить материал самостоятельно.</li>
+                    <li>В сквозном проекте квиз становится одной из базовых механик финального интерактивного урока.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Как проектировать хорошие вопросы</h2>
+                <p>Хороший вопрос проверяет конкретное действие или понимание, а не память о случайной детали. Перед написанием вопроса полезно сформулировать: «Что должен уметь слушатель?» Затем выбрать формат, который лучше всего проверяет это умение.</p>
+                <ul class="bullets">
+                    <li><strong>Один выбор</strong> подходит, когда есть один лучший ответ или решение.</li>
+                    <li><strong>Множественный выбор</strong> полезен, когда нужно выбрать несколько признаков, ошибок или условий.</li>
+                    <li><strong>True/false</strong> стоит использовать для короткой проверки принципа, но не перегружать им весь квиз.</li>
+                    <li><strong>Fill in the blanks</strong> помогает проверить термин, формулу, ключевое слово или короткий фрагмент.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Обратная связь важнее балла</h2>
+                <p>Если слушатель ошибся и видит только «неверно», он не понимает, что именно исправить. Поэтому фидбек должен объяснять причину: почему этот ответ не подходит, какое правило применить и куда вернуться, если тема просела.</p>
+                <ul class="bullets">
+                    <li>Для правильного ответа стоит коротко закрепить логику решения.</li>
+                    <li>Для неверного ответа нужно объяснить типичную ошибку, а не просто назвать правильный вариант.</li>
+                    <li>Дистракторы должны быть правдоподобными: они показывают распространенные заблуждения.</li>
+                    <li>Количество попыток и проходной балл лучше настраивать исходя из цели: тренировка, диагностика или допуск к следующему блоку.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Как собрать квиз в H5P / Lumi</h2>
+                <p>Для простого курса удобнее начать с типов H5P вроде Multiple Choice, True/False Question, Fill in the Blanks или Question Set. В Lumi Desktop можно собрать вопросы локально, настроить фидбек, проверить поведение и затем экспортировать материал для LMS или веб-страницы.</p>
+                <ul class="bullets">
+                    <li>Сначала подготовьте вопросы и фидбек в черновике, а уже потом переносите их в инструмент.</li>
+                    <li>Настройте показ правильных ответов, повторные попытки и итоговый экран.</li>
+                    <li>Проверьте квиз как слушатель: пройдите его с правильными и неправильными ответами.</li>
+                    <li>Сохраните итоговый замысел квиза в блоке сквозного проекта ниже.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card quiz-examples">
+                <h2>Примеры квизов по материалам модулей 1 и 2</h2>
+                <p>Ниже примеры того, как один и тот же учебный материал можно проверять разными типами вопросов. Их можно перенести в H5P как черновик для первого тренировочного квиза.</p>
+
+                <section class="quiz-example" data-quiz data-quiz-type="single">
+                    <p class="eyebrow">Один выбор</p>
+                    <h3>Что лучше всего описывает полезную интерактивность?</h3>
+                    <div class="quiz-options">
+                        <label><input type="radio" name="quiz-interactivity" value="decoration"> Она делает материал динамичнее: слушатель чаще нажимает на элементы и дольше остается на странице.</label>
+                        <label><input type="radio" name="quiz-interactivity" value="action" data-correct="true"> Она связывает действие слушателя с учебной целью и сразу показывает результат этого действия.</label>
+                        <label><input type="radio" name="quiz-interactivity" value="replace"> Она дробит теорию на короткие экраны, чтобы слушатель проходил материал небольшими шагами.</label>
+                        <label><input type="radio" name="quiz-interactivity" value="final"> Она добавляет контрольные точки после каждого смыслового блока, даже если они не влияют на дальнейший маршрут.</label>
+                    </div>
+                    <button class="button button--primary quiz-check" type="button" data-quiz-check>Проверить</button>
+                    <p class="quiz-feedback" data-quiz-feedback data-success="Верно. В первом модуле интерактивность связывается с учебным действием: выбрать, сопоставить, ответить, попробовать сценарий и получить обратную связь по результату." data-error="Пока нет. Здесь важно не количество кликов и не дробление текста, а связь действия слушателя с учебной целью и обратной связью." aria-live="polite"></p>
+                </section>
+
+                <section class="quiz-example" data-quiz data-quiz-type="multiple">
+                    <p class="eyebrow">Множественный выбор</p>
+                    <h3>Какие признаки показывают, что вопрос квиза спроектирован хорошо?</h3>
+                    <div class="quiz-options">
+                        <label><input type="checkbox" value="goal" data-correct="true"> Его можно напрямую связать с тем, что слушатель должен понять или сделать после темы.</label>
+                        <label><input type="checkbox" value="distractors" data-correct="true"> Неверные варианты похожи на реальные ошибки, которые может допустить слушатель.</label>
+                        <label><input type="checkbox" value="random"> Он проверяет точную формулировку из материала, даже если она не нужна для итогового действия.</label>
+                        <label><input type="checkbox" value="feedback" data-correct="true"> После ответа фидбек объясняет логику выбора, а не просто сообщает результат.</label>
+                    </div>
+                    <button class="button button--primary quiz-check" type="button" data-quiz-check>Проверить</button>
+                    <p class="quiz-feedback" data-quiz-feedback data-success="Верно. Хорошие вопросы связаны с учебной целью, используют правдоподобные дистракторы и дают объяснение, которое помогает скорректировать понимание." data-error="Пока не совсем. Оставьте признаки, которые проверяют учебную цель и помогают разобрать ошибку. Проверка точной формулировки сама по себе не делает вопрос качественным." aria-live="polite"></p>
+                </section>
+
+                <section class="quiz-example" data-quiz data-quiz-type="boolean-checkbox">
+                    <p class="eyebrow">Да / нет</p>
+                    <h3>Утверждение: квиз в интерактивном курсе нужен только для итоговой оценки.</h3>
+                    <div class="quiz-options">
+                        <label><input type="checkbox" name="quiz-assessment" value="yes" data-correct-checked="false"> Да, я согласен с утверждением.</label>
+                    </div>
+                    <button class="button button--primary quiz-check" type="button" data-quiz-check>Проверить</button>
+                    <p class="quiz-feedback" data-quiz-feedback data-success="Верно: нет. Квиз может работать до темы, внутри темы и после нее: включать предзнания, удерживать внимание, проверять ключевую мысль и помогать вернуться к слабому месту." data-error="Пока нет. Если чекбокс отмечен, это ответ «да». Во втором модуле квиз рассматривается не только как итоговая оценка, но и как учебная механика внутри материала." aria-live="polite"></p>
+                </section>
+
+                <section class="quiz-example" data-quiz data-quiz-type="blanks">
+                    <p class="eyebrow">Fill in the blanks</p>
+                    <h3>Заполните пропуски</h3>
+                    <p class="quiz-blanks">Хороший фидбек объясняет не только факт ошибки, но и ее <label><span>пропуск 1</span><input type="text" data-answer="причину" autocomplete="off"></label>, а также помогает слушателю понять, какое <label><span>пропуск 2</span><input type="text" data-answer="правило" autocomplete="off"></label> применить дальше.</p>
+                    <button class="button button--primary quiz-check" type="button" data-quiz-check>Проверить</button>
+                    <p class="quiz-feedback" data-quiz-feedback data-success="Верно. Этот тип вопроса подходит для проверки ключевых терминов и коротких формулировок. В H5P его можно собрать через Fill in the Blanks." data-error="Пока нет. Подсказка: подумайте, что именно должен прояснить фидбек после ошибки и на что он должен опереться, чтобы слушатель смог исправить ход решения." aria-live="polite"></p>
+                </section>
+            </article>
+
+            <article class="callout">
+                <h2>Практическое задание</h2>
+                <p>Подготовьте 5-7 вопросов для своего урока. Для каждого вопроса укажите, что он проверяет, какой ответ правильный, какие ошибки могут выбрать слушатели и какую обратную связь они получат. Затем соберите первую версию квиза в H5P/Lumi.</p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

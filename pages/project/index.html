@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финальный проект · Механики вовлечения</title>
+    <link rel="stylesheet" href="../../styles/style.css?v=10">
+    <script type="module" src="../../scripts/main.js?v=10" defer></script>
+</head>
+<body data-page="project">
+<header class="site-header">
+    <a class="brand" href="../../" aria-label="На главную"><span class="brand__mark">LM</span><span class="brand__text">Механики вовлечения</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button>
+    <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="../../" data-nav-link>Обзор</a>
+        <a href="../module-1/" data-nav-link>Модули</a>
+        <a href="../project/" data-nav-link>Проект</a>
+    </nav>
+</header>
+
+<main>
+    <section class="page-hero">
+        <p class="eyebrow">Сквозной результат курса</p>
+        <h1>Проектный кабинет</h1>
+        <p>Здесь студент видит все, что сделал в практических частях модулей, собирает цельный интерактивный урок и экспортирует результат как одностраничный сайт, JSON проекта или brief для сборки H5P.</p>
+        <div class="page-hero__meta">
+            <span class="tag">LocalStorage</span>
+            <span class="tag">HTML export</span>
+            <span class="tag">H5P brief</span>
+        </div>
+    </section>
+
+    <section class="content-layout">
+        <aside class="course-sidebar">
+            <div class="sidebar-title">Модули курса</div>
+            <nav class="module-menu" data-module-menu aria-label="Навигация по модулям"></nav>
+        </aside>
+
+        <div class="module-content">
+            <article class="callout">
+                <h2>Как это работает</h2>
+                <p>В каждом модуле есть блок «Сквозной проект». Ответы сохраняются в браузере на этом устройстве. Страница проекта автоматически собирает их в единую карту интерактивного урока.</p>
+            </article>
+
+            <section class="project-dashboard" data-project-summary aria-live="polite"></section>
+
+            <article class="lesson-card">
+                <h2>Что будет в финальном результате</h2>
+                <ul class="bullets">
+                    <li>Замысел урока: тема, аудитория, цель и проблема линейной подачи.</li>
+                    <li>Минимум три интерактивные механики: например квиз, drag-and-drop и сценарий.</li>
+                    <li>Структура публикации: порядок блоков, навигация, способ экспорта или размещения.</li>
+                    <li>H5P brief: структурированные данные, которые можно использовать при сборке Interactive Book или Column в Lumi/H5P.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>
