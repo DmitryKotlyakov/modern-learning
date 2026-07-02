@@ -65,7 +65,7 @@ export function renderSiteProgress() {
             </section>
             <section class="footer-progress__item" aria-label="Прогресс по финальному проекту">
                 <div class="footer-progress__label">
-                    <span>Кусочки финального проекта</span>
+                    <span>Финальный проект</span>
                     <strong>${artifactsCount} / ${total}</strong>
                 </div>
                 <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--saved" style="width: ${artifactsPercent}%"></div></div>
