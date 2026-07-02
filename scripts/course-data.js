@@ -40,9 +40,8 @@ export const modules = [
         practice: "Собрать интерактивное задание, где действие руками поддерживает учебную цель.",
         artifactTitle: "Упражнение на действие руками",
         artifactFields: [
-            { id: "taskType", label: "Тип упражнения", type: "text", placeholder: "Сортировка, сопоставление, сборка схемы..." },
-            { id: "items", label: "Элементы и зоны", type: "textarea", placeholder: "Какие карточки перетаскивает слушатель и куда?" },
-            { id: "successCriteria", label: "Критерии правильности", type: "textarea", placeholder: "Как система поймет, что ответ верный?" }
+            { id: "exerciseGoal", label: "Что тренирует упражнение", type: "textarea", placeholder: "Классификацию, порядок действий, сопоставление понятий..." },
+            { id: "exercises", label: "Упражнения", type: "interaction-builder", placeholder: "Добавьте до 5 упражнений на сортировку или ранжирование." }
         ]
     },
     {

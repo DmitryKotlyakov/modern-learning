@@ -662,6 +662,26 @@
     background: var(--color-surface);
 }
 
+.interaction-builder__add {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.interaction-builder__list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.interaction-builder__exercise {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: var(--color-surface);
+}
+
 .quiz-builder__question-top,
 .quiz-builder__subhead {
     display: flex;
@@ -838,6 +858,7 @@
 
     .quiz-builder__panel,
     .quiz-builder__add,
+    .interaction-builder__add,
     .quiz-builder__option,
     .quiz-builder__answer {
         grid-template-columns: 1fr;

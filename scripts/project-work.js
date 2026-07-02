@@ -5,13 +5,20 @@ import { renderModuleMenu } from "./navigation.js";
 const STORAGE_PREFIX = "learning-mechanics:artifact:";
 const ARTIFACT_DONE_PREFIX = "learning-mechanics:artifact-complete:";
 const QUIZ_BANK_MODULE_ID = 2;
+const INTERACTION_BUILDER_MODULE_ID = 3;
 const MAX_QUIZ_QUESTIONS = 10;
+const MAX_INTERACTION_EXERCISES = 5;
 
 const quizTypes = {
     single: "Один выбор",
     multiple: "Множественный выбор",
     boolean: "Да / нет",
     blanks: "Fill in the blanks"
+};
+
+const interactionTypes = {
+    sorting: "Сортировка",
+    ranking: "Ранжирование"
 };
 
 const escapeHtml = (value) => String(value ?? "")
@@ -93,8 +100,41 @@ const getQuizQuestions = (values) => Array.isArray(values.questions)
     ? values.questions.slice(0, MAX_QUIZ_QUESTIONS).map(normalizeQuizQuestion)
     : [];
 
+const getInteractionTemplate = (type) => ({
+    id: `exercise-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    type,
+    title: "",
+    instruction: "",
+    items: "",
+    targetStructure: "",
+    successCriteria: "",
+    feedback: ""
+});
+
+const normalizeInteractionExercise = (exercise = {}) => {
+    const type = Object.hasOwn(interactionTypes, exercise.type) ? exercise.type : "sorting";
+
+    return {
+        id: exercise.id || `exercise-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type,
+        title: String(exercise.title ?? ""),
+        instruction: String(exercise.instruction ?? ""),
+        items: String(exercise.items ?? ""),
+        targetStructure: String(exercise.targetStructure ?? ""),
+        successCriteria: String(exercise.successCriteria ?? ""),
+        feedback: String(exercise.feedback ?? "")
+    };
+};
+
+const getInteractionExercises = (values) => Array.isArray(values.exercises)
+    ? values.exercises.slice(0, MAX_INTERACTION_EXERCISES).map(normalizeInteractionExercise)
+    : [];
+
 const getQuestionCount = (values) => getQuizQuestions(values)
     .filter((question) => String(question.prompt ?? "").trim()).length;
+
+const getInteractionExerciseCount = (values) => getInteractionExercises(values)
+    .filter((exercise) => String(exercise.title || exercise.instruction || exercise.items).trim()).length;
 
 const getFilledCount = (module, values) => {
     if (module.id === QUIZ_BANK_MODULE_ID) {
@@ -104,14 +144,25 @@ const getFilledCount = (module, values) => {
         ].filter(Boolean).length;
     }
 
+    if (module.id === INTERACTION_BUILDER_MODULE_ID) {
+        return [
+            String(values.exerciseGoal ?? "").trim(),
+            getInteractionExerciseCount(values) > 0 ? "exercises" : ""
+        ].filter(Boolean).length;
+    }
+
     return module.artifactFields.filter((field) => String(values[field.id] ?? "").trim()).length;
 };
 
 const collectProject = () => modules.map((module) => {
     const storedValues = getArtifact(module.id);
-    const values = module.id === QUIZ_BANK_MODULE_ID
-        ? { ...storedValues, questions: getQuizQuestions(storedValues) }
-        : storedValues;
+    let values = storedValues;
+    if (module.id === QUIZ_BANK_MODULE_ID) {
+        values = { ...storedValues, questions: getQuizQuestions(storedValues) };
+    }
+    if (module.id === INTERACTION_BUILDER_MODULE_ID) {
+        values = { ...storedValues, exercises: getInteractionExercises(storedValues) };
+    }
     const filled = getFilledCount(module, values);
 
     return {
@@ -148,6 +199,11 @@ function renderArtifactForm() {
 
     if (moduleId === QUIZ_BANK_MODULE_ID) {
         renderQuizBankForm(module, content);
+        return;
+    }
+
+    if (moduleId === INTERACTION_BUILDER_MODULE_ID) {
+        renderInteractionBuilderForm(module, content);
         return;
     }
 
@@ -502,6 +558,176 @@ function saveArtifactFromForm(moduleId, form) {
     setArtifact(moduleId, values);
 }
 
+function renderInteractionBuilderForm(module, content) {
+    const moduleId = module.id;
+    const saved = getArtifact(moduleId);
+    let exercises = getInteractionExercises(saved);
+
+    if (Array.isArray(saved.exercises) && saved.exercises.length !== exercises.length) {
+        setArtifact(moduleId, {
+            ...saved,
+            exercises
+        });
+    }
+
+    const form = document.createElement("article");
+    form.className = "lesson-card artifact-card";
+    form.innerHTML = `
+        <div class="lesson-card__meta">
+            <span class="tag">Сквозной проект</span>
+            <span class="tag">До ${MAX_INTERACTION_EXERCISES} упражнений</span>
+        </div>
+        <h2>${escapeHtml(module.artifactTitle)}</h2>
+        <p>Соберите набор упражнений на сортировку или ранжирование. Для каждого опишите учебную задачу, элементы, правильную структуру, критерии проверки и обратную связь.</p>
+        <form class="artifact-form interaction-builder" data-artifact-form data-interaction-builder-form>
+            <label class="artifact-field" for="artifact-exerciseGoal">
+                <span>Что тренирует упражнение</span>
+                <textarea id="artifact-exerciseGoal" name="exerciseGoal" rows="4" placeholder="Классификацию, порядок действий, сопоставление понятий...">${escapeHtml(saved.exerciseGoal ?? "")}</textarea>
+            </label>
+
+            <div class="quiz-builder__panel">
+                <div>
+                    <h3>Упражнения</h3>
+                    <p data-interaction-count>${exercises.length} из ${MAX_INTERACTION_EXERCISES}</p>
+                </div>
+                <div class="interaction-builder__add">
+                    ${Object.entries(interactionTypes).map(([type, label]) => `
+                        <button class="button button--secondary" type="button" data-add-exercise="${type}">${escapeHtml(label)}</button>
+                    `).join("")}
+                </div>
+            </div>
+
+            <div class="interaction-builder__list" data-interaction-list></div>
+
+            <div class="artifact-actions">
+                <button class="button button--primary" type="submit">Сохранить в проект</button>
+                <a class="button button--secondary" href="../project/">Открыть проект</a>
+                <span class="artifact-status" data-artifact-status aria-live="polite"></span>
+            </div>
+        </form>
+    `;
+
+    const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
+    content.insertBefore(form, checklist || null);
+
+    const artifactForm = form.querySelector("[data-artifact-form]");
+    const list = form.querySelector("[data-interaction-list]");
+    const count = form.querySelector("[data-interaction-count]");
+    const status = form.querySelector("[data-artifact-status]");
+
+    const sync = (message = "Черновик сохранен") => {
+        exercises = collectInteractionExercises(artifactForm);
+        setArtifact(moduleId, {
+            exerciseGoal: artifactForm.elements.exerciseGoal.value,
+            exercises
+        });
+        count.textContent = `${exercises.length} из ${MAX_INTERACTION_EXERCISES}`;
+        status.textContent = message;
+    };
+
+    const rerender = (message) => {
+        renderInteractionExercises(list, exercises);
+        count.textContent = `${exercises.length} из ${MAX_INTERACTION_EXERCISES}`;
+        status.textContent = message;
+    };
+
+    rerender("");
+
+    artifactForm.addEventListener("click", (event) => {
+        const addButton = event.target.closest("[data-add-exercise]");
+        const removeButton = event.target.closest("[data-remove-exercise]");
+
+        if (addButton) {
+            exercises = collectInteractionExercises(artifactForm);
+            if (exercises.length >= MAX_INTERACTION_EXERCISES) {
+                status.textContent = `Максимум ${MAX_INTERACTION_EXERCISES} упражнений`;
+                return;
+            }
+            exercises.push(getInteractionTemplate(addButton.dataset.addExercise));
+            rerender("Упражнение добавлено");
+            sync("Черновик сохранен");
+        }
+
+        if (removeButton) {
+            exercises = collectInteractionExercises(artifactForm)
+                .filter((_, index) => index !== Number(removeButton.dataset.removeExercise));
+            rerender("Упражнение удалено");
+            sync("Черновик сохранен");
+        }
+    });
+
+    artifactForm.addEventListener("input", () => sync());
+    artifactForm.addEventListener("change", () => sync());
+    artifactForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sync("Сохранено");
+        localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`, "true");
+        renderSiteProgress();
+        renderModuleMenu();
+        window.setTimeout(() => {
+            status.textContent = "";
+        }, 1800);
+    });
+}
+
+function renderInteractionExercises(container, exercises) {
+    container.innerHTML = exercises.length ? exercises.map((exercise, index) => `
+        <article class="interaction-builder__exercise" data-exercise-index="${index}" data-exercise-type="${escapeHtml(exercise.type)}">
+            <div class="quiz-builder__question-top">
+                <div>
+                    <p class="eyebrow">Упражнение ${index + 1} · ${escapeHtml(interactionTypes[exercise.type])}</p>
+                    <h3>${escapeHtml(interactionTypes[exercise.type])}</h3>
+                </div>
+                <button class="button button--secondary" type="button" data-remove-exercise="${index}">Удалить</button>
+            </div>
+            <label class="quiz-builder__field">
+                <span>Название</span>
+                <input type="text" data-exercise-field="title" value="${escapeHtml(exercise.title)}" placeholder="Например: сортировка ошибок фидбека">
+            </label>
+            <label class="quiz-builder__field">
+                <span>Инструкция для слушателя</span>
+                <textarea data-exercise-field="instruction" rows="3" placeholder="Что нужно сделать?">${escapeHtml(exercise.instruction)}</textarea>
+            </label>
+            <label class="quiz-builder__field">
+                <span>${exercise.type === "ranking" ? "Шаги или элементы порядка" : "Карточки для сортировки"}</span>
+                <textarea data-exercise-field="items" rows="4" placeholder="Каждый элемент с новой строки">${escapeHtml(exercise.items)}</textarea>
+            </label>
+            <label class="quiz-builder__field">
+                <span>${exercise.type === "ranking" ? "Правильный порядок" : "Зоны и правильное распределение"}</span>
+                <textarea data-exercise-field="targetStructure" rows="4" placeholder="${exercise.type === "ranking" ? "1. Первый шаг..." : "Зона A: карточки..."}">${escapeHtml(exercise.targetStructure)}</textarea>
+            </label>
+            <label class="quiz-builder__field">
+                <span>Критерии правильности</span>
+                <textarea data-exercise-field="successCriteria" rows="3" placeholder="Как система или преподаватель поймет, что ответ верный?">${escapeHtml(exercise.successCriteria)}</textarea>
+            </label>
+            <label class="quiz-builder__field">
+                <span>Подсказка или фидбек</span>
+                <textarea data-exercise-field="feedback" rows="3" placeholder="Что увидит слушатель после ошибки или верного решения?">${escapeHtml(exercise.feedback)}</textarea>
+            </label>
+        </article>
+    `).join("") : `
+        <div class="quiz-builder__empty">
+            <h3>Пока нет упражнений</h3>
+            <p>Добавьте сортировку или ранжирование. Начать можно с одного небольшого задания на 4-6 элементов.</p>
+        </div>
+    `;
+}
+
+function collectInteractionExercises(form) {
+    return [...form.querySelectorAll(".interaction-builder__exercise[data-exercise-index]")]
+        .slice(0, MAX_INTERACTION_EXERCISES)
+        .map((exerciseElement) => normalizeInteractionExercise({
+            id: `exercise-${exerciseElement.dataset.exerciseIndex}`,
+            type: exerciseElement.dataset.exerciseType,
+            title: exerciseElement.querySelector("[data-exercise-field='title']")?.value ?? "",
+            instruction: exerciseElement.querySelector("[data-exercise-field='instruction']")?.value ?? "",
+            items: exerciseElement.querySelector("[data-exercise-field='items']")?.value ?? "",
+            targetStructure: exerciseElement.querySelector("[data-exercise-field='targetStructure']")?.value ?? "",
+            successCriteria: exerciseElement.querySelector("[data-exercise-field='successCriteria']")?.value ?? "",
+            feedback: exerciseElement.querySelector("[data-exercise-field='feedback']")?.value ?? ""
+        }));
+}
+
 function getQuestionCorrectAnswer(question) {
     if (question.type === "single") {
         return question.options?.[Number(question.correctIndex)] || "Не указан";
@@ -613,6 +839,25 @@ function renderExportQuizBody(question, index) {
     `;
 }
 
+function renderInteractionSummary(values) {
+    const exercises = getInteractionExercises(values);
+
+    if (!exercises.length) return "<span>Пока не добавлены</span>";
+
+    return `
+        <ol class="quiz-bank-summary">
+            ${exercises.map((exercise, index) => `
+                <li>
+                    <strong>${index + 1}. ${escapeHtml(interactionTypes[exercise.type])}: ${escapeHtml(exercise.title || "Без названия")}</strong>
+                    <p>${escapeHtml(exercise.instruction || "Инструкция пока не заполнена")}</p>
+                    <p><b>${exercise.type === "ranking" ? "Правильный порядок" : "Зоны и распределение"}:</b> ${escapeHtml(exercise.targetStructure || "Пока не указано").replaceAll("\n", "<br>")}</p>
+                    <p><b>Фидбек:</b> ${exercise.feedback ? escapeHtml(exercise.feedback) : "<span>Пока не указан</span>"}</p>
+                </li>
+            `).join("")}
+        </ol>
+    `;
+}
+
 function renderProjectFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         const quizGoal = String(values.quizGoal ?? "").trim();
@@ -624,6 +869,20 @@ function renderProjectFields(module, values) {
             <div class="project-field">
                 <dt>Банк вопросов</dt>
                 <dd>${renderQuizBankSummary(values)}</dd>
+            </div>
+        `;
+    }
+
+    if (module.id === INTERACTION_BUILDER_MODULE_ID) {
+        const exerciseGoal = String(values.exerciseGoal ?? "").trim();
+        return `
+            <div class="project-field">
+                <dt>Что тренирует упражнение</dt>
+                <dd>${exerciseGoal ? escapeHtml(exerciseGoal).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
+            </div>
+            <div class="project-field">
+                <dt>Упражнения</dt>
+                <dd>${renderInteractionSummary(values)}</dd>
             </div>
         `;
     }
@@ -644,6 +903,13 @@ function renderExportFields(module, values) {
         return `
             <section><h3>Что проверяет квиз</h3><p>${escapeHtml(String(values.quizGoal ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
             <section><h3>Интерактивный квиз</h3>${renderExportQuizBank(values)}</section>
+        `;
+    }
+
+    if (module.id === INTERACTION_BUILDER_MODULE_ID) {
+        return `
+            <section><h3>Что тренирует упражнение</h3><p>${escapeHtml(String(values.exerciseGoal ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
+            <section><h3>Упражнения на сортировку и ранжирование</h3>${renderInteractionSummary(values)}</section>
         `;
     }
 
