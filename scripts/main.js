@@ -1,8 +1,8 @@
-import { initNavigation, renderModuleGrid, renderModuleMenu } from "./navigation.js?v=9";
-import { renderChecklist } from "./progress.js?v=9";
-import { initProjectWorkspace } from "./project-work.js?v=9";
-import { initQuizExamples } from "./quiz-examples.js?v=10";
-import { initSiteProgress } from "./site-progress.js?v=9";
+import { initNavigation, renderModuleGrid, renderModuleMenu } from "./navigation.js?v=11";
+import { renderChecklist } from "./progress.js?v=11";
+import { initProjectWorkspace } from "./project-work.js?v=11";
+import { initQuizExamples } from "./quiz-examples.js?v=11";
+import { initSiteProgress } from "./site-progress.js?v=11";
 
 initNavigation();
 renderModuleGrid();

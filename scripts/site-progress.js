@@ -1,4 +1,4 @@
-import { modules } from "./course-data.js?v=9";
+import { modules } from "./course-data.js?v=11";
 
 const VISITED_KEY = "learning-mechanics:visited-modules";
 const ARTIFACT_DONE_PREFIX = "learning-mechanics:artifact-complete:";

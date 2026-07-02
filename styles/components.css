@@ -442,6 +442,113 @@
     font-weight: 800;
 }
 
+.quiz-builder__panel,
+.quiz-builder__question,
+.quiz-builder__empty {
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: #fbfaf6;
+}
+
+.quiz-builder__panel {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.3fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.quiz-builder__panel h3,
+.quiz-builder__panel p,
+.quiz-builder__question h3,
+.quiz-builder__empty h3,
+.quiz-builder__empty p {
+    margin: 0;
+}
+
+.quiz-builder__panel p,
+.quiz-builder__empty p {
+    color: var(--color-muted);
+}
+
+.quiz-builder__add,
+.quiz-builder__list,
+.quiz-builder__options {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.quiz-builder__add {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.quiz-builder__question {
+    display: grid;
+    gap: 1rem;
+    background: var(--color-surface);
+}
+
+.quiz-builder__question-top,
+.quiz-builder__subhead {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+    justify-content: space-between;
+}
+
+.quiz-builder__field,
+.quiz-builder__option,
+.quiz-builder__answer {
+    display: grid;
+    gap: 0.45rem;
+    font-weight: 800;
+}
+
+.quiz-builder__field textarea,
+.quiz-builder__field select,
+.quiz-builder__option input[type="text"],
+.quiz-builder__answer input {
+    width: 100%;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-xs);
+    padding: 0.75rem;
+    color: var(--color-ink);
+    background: #fff;
+    font-weight: 500;
+}
+
+.quiz-builder__option {
+    grid-template-columns: 1.2rem minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.quiz-builder__option input[type="radio"],
+.quiz-builder__option input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-accent);
+}
+
+.quiz-builder__answer {
+    grid-template-columns: 6rem minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.quiz-bank-summary {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.quiz-bank-summary li {
+    padding-left: 0.25rem;
+}
+
+.quiz-bank-summary p {
+    margin: 0.35rem 0 0;
+}
+
 .project-artifacts {
     display: grid;
     gap: 1rem;
@@ -536,6 +643,18 @@
 
     .artifact-field span {
         padding-top: 0;
+    }
+
+    .quiz-builder__panel,
+    .quiz-builder__add,
+    .quiz-builder__option,
+    .quiz-builder__answer {
+        grid-template-columns: 1fr;
+    }
+
+    .quiz-builder__question-top,
+    .quiz-builder__subhead {
+        display: grid;
     }
 }
 

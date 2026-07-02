@@ -27,8 +27,7 @@ export const modules = [
         artifactTitle: "Банк вопросов и обратная связь",
         artifactFields: [
             { id: "quizGoal", label: "Что проверяет квиз", type: "textarea", placeholder: "Понимание термина, применение правила, выбор решения..." },
-            { id: "questions", label: "Черновик вопросов", type: "textarea", placeholder: "Запишите 5-7 вопросов и правильные ответы." },
-            { id: "feedback", label: "Обратная связь", type: "textarea", placeholder: "Что увидит слушатель при верном и неверном ответе?" }
+            { id: "questionBank", label: "Банк вопросов", type: "quiz-builder", placeholder: "Добавьте до 10 вопросов разных типов." }
         ]
     },
     {
