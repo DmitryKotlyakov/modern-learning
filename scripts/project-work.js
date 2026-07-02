@@ -999,6 +999,25 @@ function renderInteractionSummary(values) {
     `;
 }
 
+function renderExportInteractionExercises(values) {
+    const exercises = getInteractionExercises(values);
+
+    if (!exercises.length) return "<p>Пока не добавлены</p>";
+
+    return `
+        <div class="export-interactions">
+            ${exercises.map((exercise, index) => `
+                <section class="export-interaction">
+                    <p class="export-quiz__type">Упражнение ${index + 1} · ${escapeHtml(interactionTypes[exercise.type])}</p>
+                    <h3>${escapeHtml(exercise.title || "Упражнение без названия")}</h3>
+                    ${renderInteractionPreview(exercise, index)}
+                    ${exercise.feedback ? `<p class="export-interaction__hint"><b>Подсказка:</b> ${escapeHtml(exercise.feedback)}</p>` : ""}
+                </section>
+            `).join("")}
+        </div>
+    `;
+}
+
 function renderProjectFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         const quizGoal = String(values.quizGoal ?? "").trim();
@@ -1050,7 +1069,7 @@ function renderExportFields(module, values) {
     if (module.id === INTERACTION_BUILDER_MODULE_ID) {
         return `
             <section><h3>Что тренирует упражнение</h3><p>${escapeHtml(String(values.exerciseGoal ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
-            <section><h3>Упражнения на сортировку и ранжирование</h3>${renderInteractionSummary(values)}</section>
+            <section><h3>Упражнения на сортировку и ранжирование</h3>${renderExportInteractionExercises(values)}</section>
         `;
     }
 
@@ -1152,6 +1171,39 @@ function exportOnePageHtml() {
         .export-quiz__feedback { min-height: 24px; margin: 12px 0 0; font-weight: 700; }
         .export-quiz__feedback.is-success { color: #115e59; }
         .export-quiz__feedback.is-error { color: #9f3f2f; }
+        .export-interactions { display: grid; gap: 16px; }
+        .export-interaction { border: 1px solid #d8ded8; border-radius: 8px; padding: 18px; background: #fbfaf6; }
+        .export-interaction__hint { margin: 12px 0 0; color: #4b5b52; }
+        .interaction-preview__task, .sorting-task, .ranking-task { display: grid; gap: 16px; margin-top: 14px; }
+        .interaction-preview__instruction { margin: 0; color: #4b5b52; }
+        .sorting-task__source, .sorting-task__zones { display: grid; gap: 12px; }
+        .sorting-task__source { grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px dashed #d8ded8; border-radius: 8px; padding: 16px; background: #fff; }
+        .sorting-task__zones { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .sorting-card { min-height: 64px; border: 1px solid #d8ded8; border-radius: 6px; padding: 12px; color: #17211b; background: #fff; font: inherit; font-weight: 700; text-align: left; cursor: grab; }
+        .sorting-card:active, .ranking-item:active { cursor: grabbing; }
+        .sorting-card.is-selected { border-color: #2f6fbb; box-shadow: inset 0 0 0 2px #2f6fbb; }
+        .sorting-card.is-correct, .ranking-item.is-correct { border-color: #17806d; background: #e7f4ef; }
+        .sorting-card.is-wrong, .ranking-item.is-wrong { border-color: #c95f4f; background: #fff0ec; }
+        .sorting-zone { display: grid; align-content: start; gap: 12px; min-height: 180px; border: 1px solid #d8ded8; border-radius: 8px; padding: 16px; background: #fff; }
+        .sorting-zone h3 { margin: 0; }
+        .sorting-task__source.is-drag-over, .sorting-zone.is-drag-over, .ranking-item.is-drag-over { border-color: #2f6fbb; background: #edf5ff; }
+        .sorting-task__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .sorting-task__status { min-height: 24px; font-weight: 700; }
+        .sorting-task__status.is-success { color: #115e59; }
+        .sorting-task__status.is-error { color: #9f3f2f; }
+        .ranking-list { display: grid; gap: 12px; counter-reset: ranking-step; }
+        .ranking-item { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; border: 1px solid #d8ded8; border-radius: 8px; padding: 12px; background: #fff; cursor: grab; }
+        .ranking-item::before { display: inline-grid; width: 32px; height: 32px; place-items: center; border-radius: 6px; color: #fff; background: #2f6fbb; font-weight: 800; counter-increment: ranking-step; content: counter(ranking-step); }
+        .ranking-item__controls { display: flex; gap: 6px; }
+        .ranking-item__controls button { display: grid; width: 32px; height: 32px; min-height: 32px; place-items: center; border: 1px solid #d8ded8; border-radius: 6px; padding: 0; color: #17211b; background: #fff; }
+        @media (max-width: 760px) {
+            main { padding: 28px 14px; }
+            h1 { font-size: 32px; }
+            article { padding: 18px; }
+            .sorting-task__source, .sorting-task__zones { grid-template-columns: 1fr; }
+            .ranking-item { grid-template-columns: 32px minmax(0, 1fr); }
+            .ranking-item__controls { grid-column: 2; }
+        }
     </style>
 </head>
 <body>
@@ -1161,6 +1213,9 @@ function exportOnePageHtml() {
     ${sections}
 </main>
 <script>
+    let selectedCard = null;
+    let draggedRankingItem = null;
+
     const normalizeAnswer = (value) => value.trim().toLowerCase().replaceAll("ё", "е");
 
     function setFeedback(quiz, isCorrect) {
@@ -1238,6 +1293,243 @@ function exportOnePageHtml() {
             }
         });
     });
+
+    function getCards(task) {
+        return [...task.querySelectorAll(".sorting-card")];
+    }
+
+    function moveCard(card, zone) {
+        zone.append(card);
+        card.classList.remove("is-selected", "is-correct", "is-wrong");
+        selectedCard = null;
+    }
+
+    function clearSortingResults(task) {
+        task.querySelectorAll(".sorting-card").forEach((card) => {
+            card.classList.remove("is-correct", "is-wrong");
+        });
+    }
+
+    function setSortingStatus(task, message, isSuccess = false) {
+        const status = task.querySelector("[data-sorting-status]");
+        if (!status) return;
+
+        status.textContent = message;
+        status.classList.toggle("is-success", isSuccess);
+        status.classList.toggle("is-error", Boolean(message) && !isSuccess);
+    }
+
+    function checkSortingTask(task) {
+        const cards = getCards(task);
+        let placed = 0;
+        let correct = 0;
+
+        cards.forEach((card) => {
+            const zone = card.closest("[data-zone]");
+            const isPlaced = Boolean(zone);
+            const isCorrect = isPlaced && zone.dataset.zone === card.dataset.target;
+
+            if (isPlaced) placed += 1;
+            if (isCorrect) correct += 1;
+
+            card.classList.toggle("is-correct", isCorrect);
+            card.classList.toggle("is-wrong", isPlaced && !isCorrect);
+        });
+
+        if (placed < cards.length) {
+            setSortingStatus(task, \`Разложено \${placed} из \${cards.length}. Перенесите все карточки в зоны.\`);
+            return;
+        }
+
+        if (correct === cards.length) {
+            setSortingStatus(task, "Все верно: карточки находятся в подходящих зонах.", true);
+        } else {
+            setSortingStatus(task, \`Верно \${correct} из \${cards.length}. Посмотрите на красные карточки и уточните правило сортировки.\`);
+        }
+    }
+
+    function resetSortingTask(task) {
+        const source = task.querySelector("[data-sorting-source]");
+        getCards(task).forEach((card) => {
+            card.classList.remove("is-selected", "is-correct", "is-wrong");
+            source.append(card);
+        });
+        selectedCard = null;
+        setSortingStatus(task, "");
+    }
+
+    function initSortingTask(task) {
+        if (task.dataset.sortingInitialized === "true") return;
+        task.dataset.sortingInitialized = "true";
+
+        const source = task.querySelector("[data-sorting-source]");
+        const zones = [...task.querySelectorAll("[data-zone]")];
+
+        getCards(task).forEach((card) => {
+            card.addEventListener("dragstart", (event) => {
+                event.dataTransfer.setData("text/plain", card.dataset.card);
+                event.dataTransfer.effectAllowed = "move";
+                selectedCard = card;
+            });
+
+            card.addEventListener("click", () => {
+                clearSortingResults(task);
+                getCards(task).forEach((item) => item.classList.remove("is-selected"));
+                selectedCard = selectedCard === card ? null : card;
+                card.classList.toggle("is-selected", selectedCard === card);
+                setSortingStatus(task, selectedCard ? "Теперь выберите зону для этой карточки." : "");
+            });
+        });
+
+        [source, ...zones].forEach((dropTarget) => {
+            dropTarget.addEventListener("dragover", (event) => {
+                event.preventDefault();
+                dropTarget.classList.add("is-drag-over");
+            });
+
+            dropTarget.addEventListener("dragleave", () => {
+                dropTarget.classList.remove("is-drag-over");
+            });
+
+            dropTarget.addEventListener("drop", (event) => {
+                event.preventDefault();
+                dropTarget.classList.remove("is-drag-over");
+                const cardId = event.dataTransfer.getData("text/plain");
+                const card = task.querySelector(\`[data-card="\${cardId}"]\`);
+                if (card) moveCard(card, dropTarget);
+                clearSortingResults(task);
+                setSortingStatus(task, "");
+            });
+
+            dropTarget.addEventListener("click", () => {
+                if (!selectedCard || dropTarget.classList.contains("sorting-card")) return;
+                moveCard(selectedCard, dropTarget);
+                clearSortingResults(task);
+                setSortingStatus(task, "");
+            });
+        });
+
+        task.querySelector("[data-sorting-check]")?.addEventListener("click", () => checkSortingTask(task));
+        task.querySelector("[data-sorting-reset]")?.addEventListener("click", () => resetSortingTask(task));
+    }
+
+    function getRankingItems(task) {
+        return [...task.querySelectorAll("[data-rank-item]")];
+    }
+
+    function setRankingStatus(task, message, isSuccess = false) {
+        const status = task.querySelector("[data-ranking-status]");
+        if (!status) return;
+
+        status.textContent = message;
+        status.classList.toggle("is-success", isSuccess);
+        status.classList.toggle("is-error", Boolean(message) && !isSuccess);
+    }
+
+    function clearRankingResults(task) {
+        getRankingItems(task).forEach((item) => {
+            item.classList.remove("is-correct", "is-wrong", "is-drag-over");
+        });
+    }
+
+    function moveRankingItem(item, direction) {
+        if (direction === "up" && item.previousElementSibling) {
+            item.parentElement.insertBefore(item, item.previousElementSibling);
+        }
+
+        if (direction === "down" && item.nextElementSibling) {
+            item.parentElement.insertBefore(item.nextElementSibling, item);
+        }
+    }
+
+    function checkRankingTask(task) {
+        const items = getRankingItems(task);
+        let correct = 0;
+
+        items.forEach((item, index) => {
+            const isCorrect = Number(item.dataset.order) === index + 1;
+            item.classList.toggle("is-correct", isCorrect);
+            item.classList.toggle("is-wrong", !isCorrect);
+            if (isCorrect) correct += 1;
+        });
+
+        if (correct === items.length) {
+            setRankingStatus(task, "Порядок верный.", true);
+        } else {
+            setRankingStatus(task, \`На своих местах \${correct} из \${items.length}. Переставьте шаги и проверьте снова.\`);
+        }
+    }
+
+    function shuffleRankingTask(task) {
+        const list = task.querySelector("[data-ranking-list]");
+        const items = getRankingItems(task);
+
+        items
+            .map((item) => ({ item, order: Math.random() }))
+            .sort((left, right) => left.order - right.order)
+            .forEach(({ item }) => list.append(item));
+
+        clearRankingResults(task);
+        setRankingStatus(task, "Шаги перемешаны. Соберите порядок заново.");
+    }
+
+    function initRankingTask(task) {
+        if (task.dataset.rankingInitialized === "true") return;
+        task.dataset.rankingInitialized = "true";
+
+        const list = task.querySelector("[data-ranking-list]");
+        if (!list) return;
+
+        getRankingItems(task).forEach((item) => {
+            item.addEventListener("dragstart", (event) => {
+                draggedRankingItem = item;
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", item.dataset.rankItem);
+            });
+
+            item.addEventListener("dragover", (event) => {
+                event.preventDefault();
+                item.classList.add("is-drag-over");
+            });
+
+            item.addEventListener("dragleave", () => {
+                item.classList.remove("is-drag-over");
+            });
+
+            item.addEventListener("drop", (event) => {
+                event.preventDefault();
+                item.classList.remove("is-drag-over");
+                if (!draggedRankingItem || draggedRankingItem === item) return;
+
+                const insertAfter = event.offsetY > item.offsetHeight / 2;
+                if (insertAfter) {
+                    item.after(draggedRankingItem);
+                } else {
+                    item.before(draggedRankingItem);
+                }
+                clearRankingResults(task);
+                setRankingStatus(task, "");
+            });
+        });
+
+        task.addEventListener("click", (event) => {
+            const upButton = event.target.closest("[data-rank-up]");
+            const downButton = event.target.closest("[data-rank-down]");
+
+            if (upButton || downButton) {
+                const item = event.target.closest("[data-rank-item]");
+                moveRankingItem(item, upButton ? "up" : "down");
+                clearRankingResults(task);
+                setRankingStatus(task, "");
+            }
+        });
+
+        task.querySelector("[data-ranking-check]")?.addEventListener("click", () => checkRankingTask(task));
+        task.querySelector("[data-ranking-shuffle]")?.addEventListener("click", () => shuffleRankingTask(task));
+    }
+
+    document.querySelectorAll("[data-sorting-task]").forEach(initSortingTask);
+    document.querySelectorAll("[data-ranking-task]").forEach(initRankingTask);
 <\/script>
 </body>
 </html>`;
