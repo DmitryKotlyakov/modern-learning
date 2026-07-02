@@ -1,6 +1,7 @@
 import { modules } from "./course-data.js";
 import { renderSiteProgress } from "./site-progress.js";
 import { renderModuleMenu } from "./navigation.js";
+import { initSortingTasks } from "./sorting-task.js";
 
 const STORAGE_PREFIX = "learning-mechanics:artifact:";
 const ARTIFACT_DONE_PREFIX = "learning-mechanics:artifact-complete:";
@@ -629,6 +630,7 @@ function renderInteractionBuilderForm(module, content) {
         renderInteractionExercises(list, exercises);
         count.textContent = `${exercises.length} из ${MAX_INTERACTION_EXERCISES}`;
         status.textContent = message;
+        initSortingTasks();
     };
 
     rerender("");
@@ -636,6 +638,7 @@ function renderInteractionBuilderForm(module, content) {
     artifactForm.addEventListener("click", (event) => {
         const addButton = event.target.closest("[data-add-exercise]");
         const removeButton = event.target.closest("[data-remove-exercise]");
+        const refreshButton = event.target.closest("[data-refresh-exercise]");
 
         if (addButton) {
             exercises = collectInteractionExercises(artifactForm);
@@ -653,6 +656,13 @@ function renderInteractionBuilderForm(module, content) {
                 .filter((_, index) => index !== Number(removeButton.dataset.removeExercise));
             rerender("Упражнение удалено");
             sync("Черновик сохранен");
+        }
+
+        if (refreshButton) {
+            exercises = collectInteractionExercises(artifactForm);
+            rerender("Предпросмотр обновлен");
+            sync("Черновик сохранен");
+            initSortingTasks();
         }
     });
 
@@ -704,11 +714,128 @@ function renderInteractionExercises(container, exercises) {
                 <span>Подсказка или фидбек</span>
                 <textarea data-exercise-field="feedback" rows="3" placeholder="Что увидит слушатель после ошибки или верного решения?">${escapeHtml(exercise.feedback)}</textarea>
             </label>
+            <div class="interaction-preview">
+                <div class="interaction-preview__top">
+                    <h4>Предпросмотр</h4>
+                    <button class="button button--secondary" type="button" data-refresh-exercise="${index}">Обновить предпросмотр</button>
+                </div>
+                ${renderInteractionPreview(exercise, index)}
+            </div>
         </article>
     `).join("") : `
         <div class="quiz-builder__empty">
             <h3>Пока нет упражнений</h3>
             <p>Добавьте сортировку или ранжирование. Начать можно с одного небольшого задания на 4-6 элементов.</p>
+        </div>
+    `;
+}
+
+function parseLines(value) {
+    return String(value ?? "")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+}
+
+function getZoneKey(index) {
+    return `zone-${index}`;
+}
+
+function parseSortingZones(value) {
+    return parseLines(value).map((line, index) => {
+        const [rawTitle, rawItems = ""] = line.includes(":") ? line.split(/:(.*)/s) : [line, ""];
+        return {
+            key: getZoneKey(index),
+            title: rawTitle.trim() || `Зона ${index + 1}`,
+            items: rawItems
+                .split(/[,;]+/)
+                .map((item) => item.trim().toLowerCase())
+                .filter(Boolean)
+        };
+    });
+}
+
+function renderInteractionPreview(exercise, index) {
+    if (exercise.type === "ranking") {
+        return renderRankingPreview(exercise, index);
+    }
+
+    return renderSortingPreview(exercise, index);
+}
+
+function renderSortingPreview(exercise, index) {
+    const items = parseLines(exercise.items);
+    const zones = parseSortingZones(exercise.targetStructure);
+
+    if (!items.length || !zones.length) {
+        return `<p class="interaction-preview__empty">Заполните карточки и зоны распределения, затем обновите предпросмотр.</p>`;
+    }
+
+    const fallbackZone = zones[0]?.key || "zone-0";
+    const cards = items.map((item, itemIndex) => {
+        const normalizedItem = item.toLowerCase();
+        const targetZone = zones.find((zone) => zone.items.some((zoneItem) => zoneItem === normalizedItem))?.key || fallbackZone;
+        return `
+            <button class="sorting-card" type="button" draggable="true" data-card="preview-${index}-${itemIndex}" data-target="${targetZone}">${escapeHtml(item)}</button>
+        `;
+    }).join("");
+
+    return `
+        <div class="interaction-preview__task sorting-task" data-sorting-task>
+            <p class="interaction-preview__instruction">${escapeHtml(exercise.instruction || "Разложите карточки по зонам.")}</p>
+            <div class="sorting-task__source" data-sorting-source aria-label="Карточки предпросмотра">
+                ${cards}
+            </div>
+            <div class="sorting-task__zones">
+                ${zones.map((zone) => `
+                    <section class="sorting-zone" data-zone="${zone.key}" aria-label="${escapeHtml(zone.title)}">
+                        <h3>${escapeHtml(zone.title)}</h3>
+                    </section>
+                `).join("")}
+            </div>
+            <div class="sorting-task__actions">
+                <button class="button button--primary" type="button" data-sorting-check>Проверить</button>
+                <button class="button button--secondary" type="button" data-sorting-reset>Сбросить</button>
+                <span class="sorting-task__status" data-sorting-status aria-live="polite"></span>
+            </div>
+        </div>
+    `;
+}
+
+function renderRankingPreview(exercise, index) {
+    const items = parseLines(exercise.items);
+    const targetOrder = parseLines(exercise.targetStructure);
+
+    if (!items.length) {
+        return `<p class="interaction-preview__empty">Заполните шаги ранжирования, затем обновите предпросмотр.</p>`;
+    }
+
+    const orderedReference = targetOrder.length ? targetOrder : items;
+    const normalizedReference = orderedReference.map((item) => item.toLowerCase());
+
+    return `
+        <div class="interaction-preview__task ranking-task" data-ranking-task>
+            <p class="interaction-preview__instruction">${escapeHtml(exercise.instruction || "Расставьте шаги в правильном порядке.")}</p>
+            <div class="ranking-list" data-ranking-list aria-label="Шаги предпросмотра">
+                ${items.map((item, itemIndex) => {
+                    const referenceIndex = normalizedReference.indexOf(item.toLowerCase());
+                    const correctOrder = referenceIndex >= 0 ? referenceIndex + 1 : itemIndex + 1;
+                    return `
+                        <div class="ranking-item" draggable="true" data-rank-item="preview-rank-${index}-${itemIndex}" data-order="${correctOrder}">
+                            <span>${escapeHtml(item)}</span>
+                            <div class="ranking-item__controls">
+                                <button type="button" data-rank-up aria-label="Поднять шаг">↑</button>
+                                <button type="button" data-rank-down aria-label="Опустить шаг">↓</button>
+                            </div>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+            <div class="sorting-task__actions">
+                <button class="button button--primary" type="button" data-ranking-check>Проверить</button>
+                <button class="button button--secondary" type="button" data-ranking-shuffle>Перемешать</button>
+                <span class="sorting-task__status" data-ranking-status aria-live="polite"></span>
+            </div>
         </div>
     `;
 }

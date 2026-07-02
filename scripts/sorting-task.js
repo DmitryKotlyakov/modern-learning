@@ -66,6 +66,9 @@ function resetTask(task) {
 }
 
 function initTask(task) {
+    if (task.dataset.sortingInitialized === "true") return;
+    task.dataset.sortingInitialized = "true";
+
     const source = task.querySelector("[data-sorting-source]");
     const zones = [...task.querySelectorAll("[data-zone]")];
 
@@ -183,6 +186,9 @@ function shuffleRankingTask(task) {
 }
 
 function initRankingTask(task) {
+    if (task.dataset.rankingInitialized === "true") return;
+    task.dataset.rankingInitialized = "true";
+
     const list = task.querySelector("[data-ranking-list]");
     if (!list) return;
 
