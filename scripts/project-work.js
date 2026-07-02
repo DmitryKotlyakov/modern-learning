@@ -108,7 +108,6 @@ const getInteractionTemplate = (type) => ({
     instruction: "",
     items: "",
     targetStructure: "",
-    successCriteria: "",
     feedback: ""
 });
 
@@ -122,7 +121,6 @@ const normalizeInteractionExercise = (exercise = {}) => {
         instruction: String(exercise.instruction ?? ""),
         items: String(exercise.items ?? ""),
         targetStructure: String(exercise.targetStructure ?? ""),
-        successCriteria: String(exercise.successCriteria ?? ""),
         feedback: String(exercise.feedback ?? "")
     };
 };
@@ -579,7 +577,7 @@ function renderInteractionBuilderForm(module, content) {
             <span class="tag">До ${MAX_INTERACTION_EXERCISES} упражнений</span>
         </div>
         <h2>${escapeHtml(module.artifactTitle)}</h2>
-        <p>Соберите набор упражнений на сортировку или ранжирование. Для каждого опишите учебную задачу, элементы, правильную структуру, критерии проверки и обратную связь.</p>
+        <p>Соберите набор упражнений на сортировку или ранжирование. Для каждого опишите учебную задачу, элементы, правильную структуру и обратную связь.</p>
         <form class="artifact-form interaction-builder" data-artifact-form data-interaction-builder-form>
             <label class="artifact-field" for="artifact-exerciseGoal">
                 <span>Что тренирует упражнение</span>
@@ -707,10 +705,6 @@ function renderInteractionExercises(container, exercises) {
                 <textarea data-exercise-field="targetStructure" rows="5" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "targetStructure"))}">${escapeHtml(exercise.targetStructure)}</textarea>
             </label>
             <label class="quiz-builder__field">
-                <span>Критерии правильности</span>
-                <textarea data-exercise-field="successCriteria" rows="3" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "successCriteria"))}">${escapeHtml(exercise.successCriteria)}</textarea>
-            </label>
-            <label class="quiz-builder__field">
                 <span>Подсказка или фидбек</span>
                 <textarea data-exercise-field="feedback" rows="3" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "feedback"))}">${escapeHtml(exercise.feedback)}</textarea>
             </label>
@@ -744,7 +738,6 @@ function getInteractionPlaceholder(type, field) {
             instruction: "Формат: короткая команда для слушателя.\nНапример: Разложите примеры по типам учебных механик.",
             items: "Формат: одна карточка на строку.\nНапример:\nОбъяснить ошибку после ответа\nРазнести примеры по категориям\nВосстановить порядок процесса",
             targetStructure: "Формат: Зона: карточка 1, карточка 2\nНазвания карточек должны совпадать с полем выше.\nНапример:\nКвиз: Объяснить ошибку после ответа\nDrag-and-drop: Разнести примеры по категориям, Восстановить порядок процесса",
-            successCriteria: "Формат: как выглядит правильная раскладка.\nНапример: Все карточки находятся в своих зонах; частичный ответ не засчитывается.",
             feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Проверьте, какое учебное действие выполняет слушатель: выбирает ответ или распределяет элементы."
         },
         ranking: {
@@ -752,7 +745,6 @@ function getInteractionPlaceholder(type, field) {
             instruction: "Формат: короткая команда для слушателя.\nНапример: Расставьте шаги проектирования в правильной последовательности.",
             items: "Формат: один шаг на строку. Можно дать шаги в перемешанном порядке.\nНапример:\nПроверить удобство на мобильной ширине\nОпределить учебное действие\nДобавить фидбек\nВыбрать карточки и зоны",
             targetStructure: "Формат: правильный порядок, один шаг на строку.\nТекст шагов должен совпадать с полем выше.\nНапример:\nОпределить учебное действие\nВыбрать карточки и зоны\nПроверить удобство на мобильной ширине\nДобавить фидбек",
-            successCriteria: "Формат: правило проверки порядка.\nНапример: Каждый шаг стоит на своей позиции; порядок считается неверным, если перепутан хотя бы один этап.",
             feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Сначала формулируется учебная задача, затем элементы и зоны, потом интерфейс и фидбек."
         }
     };
@@ -873,7 +865,6 @@ function collectInteractionExercises(form) {
             instruction: exerciseElement.querySelector("[data-exercise-field='instruction']")?.value ?? "",
             items: exerciseElement.querySelector("[data-exercise-field='items']")?.value ?? "",
             targetStructure: exerciseElement.querySelector("[data-exercise-field='targetStructure']")?.value ?? "",
-            successCriteria: exerciseElement.querySelector("[data-exercise-field='successCriteria']")?.value ?? "",
             feedback: exerciseElement.querySelector("[data-exercise-field='feedback']")?.value ?? ""
         }));
 }
