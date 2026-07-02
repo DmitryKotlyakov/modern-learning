@@ -541,6 +541,78 @@ function renderQuizBankSummary(values) {
     `;
 }
 
+function renderExportQuizBank(values) {
+    const questions = getQuizQuestions(values);
+
+    if (!questions.length) return "<p>Пока не добавлены</p>";
+
+    return `
+        <div class="export-quiz-bank">
+            ${questions.map((question, index) => renderExportQuizQuestion(question, index)).join("")}
+        </div>
+    `;
+}
+
+function renderExportQuizQuestion(question, index) {
+    const typeLabel = quizTypes[question.type] || question.type;
+    return `
+        <section class="export-quiz" data-export-quiz data-export-quiz-type="${escapeHtml(question.type)}">
+            <p class="export-quiz__type">Вопрос ${index + 1} · ${escapeHtml(typeLabel)}</p>
+            <h3>${escapeHtml(question.prompt || "Вопрос пока не заполнен")}</h3>
+            ${renderExportQuizBody(question, index)}
+            <button type="button" data-export-quiz-check>Проверить</button>
+            <p class="export-quiz__feedback" data-export-quiz-feedback data-hint="${escapeHtml(question.hint || "Вернитесь к материалу вопроса и сравните свой ответ с учебной целью.")}" aria-live="polite"></p>
+        </section>
+    `;
+}
+
+function renderExportQuizBody(question, index) {
+    if (question.type === "single" || question.type === "multiple") {
+        const options = Array.isArray(question.options) && question.options.length ? question.options : ["", ""];
+        const correctIndexes = new Set((question.correctIndexes || []).map(String));
+
+        return `
+            <div class="export-quiz__options">
+                ${options.map((option, optionIndex) => {
+                    const isCorrect = question.type === "single"
+                        ? String(question.correctIndex ?? "0") === String(optionIndex)
+                        : correctIndexes.has(String(optionIndex));
+                    const inputType = question.type === "single" ? "radio" : "checkbox";
+                    return `
+                        <label>
+                            <input type="${inputType}" name="export-question-${index}" value="${optionIndex}" ${isCorrect ? "data-correct=\"true\"" : ""}>
+                            <span>${escapeHtml(option || `Вариант ${optionIndex + 1}`)}</span>
+                        </label>
+                    `;
+                }).join("")}
+            </div>
+        `;
+    }
+
+    if (question.type === "boolean") {
+        return `
+            <div class="export-quiz__options">
+                <label>
+                    <input type="checkbox" value="yes" data-correct-checked="${question.correctBoolean === "yes" ? "true" : "false"}">
+                    <span>Да</span>
+                </label>
+            </div>
+        `;
+    }
+
+    const answers = Array.isArray(question.answers) && question.answers.length ? question.answers : [""];
+    return `
+        <div class="export-quiz__blanks">
+            ${answers.map((answer, answerIndex) => `
+                <label>
+                    <span>Пропуск ${answerIndex + 1}</span>
+                    <input type="text" data-answer="${escapeHtml(answer)}" autocomplete="off">
+                </label>
+            `).join("")}
+        </div>
+    `;
+}
+
 function renderProjectFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         const quizGoal = String(values.quizGoal ?? "").trim();
@@ -571,7 +643,7 @@ function renderExportFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         return `
             <section><h3>Что проверяет квиз</h3><p>${escapeHtml(String(values.quizGoal ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
-            <section><h3>Банк вопросов</h3>${renderQuizBankSummary(values)}</section>
+            <section><h3>Интерактивный квиз</h3>${renderExportQuizBank(values)}</section>
         `;
     }
 
@@ -659,6 +731,20 @@ function exportOnePageHtml() {
         article > p { color: #115e59; font-weight: 700; }
         section { border-top: 1px solid #d8ded8; padding-top: 14px; margin-top: 14px; }
         h2, h3 { margin-bottom: 8px; }
+        button { min-height: 42px; border: 0; border-radius: 8px; padding: 10px 14px; color: #fff; background: #17806d; font-weight: 700; cursor: pointer; }
+        input { font: inherit; }
+        .export-quiz-bank { display: grid; gap: 16px; }
+        .export-quiz { border: 1px solid #d8ded8; border-radius: 8px; padding: 18px; background: #fbfaf6; }
+        .export-quiz__type { margin: 0 0 8px; color: #115e59; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .export-quiz__options, .export-quiz__blanks { display: grid; gap: 10px; margin: 14px 0; }
+        .export-quiz__options label, .export-quiz__blanks label { display: grid; gap: 8px; border: 1px solid #d8ded8; border-radius: 8px; padding: 12px; background: #fff; }
+        .export-quiz__options label { grid-template-columns: 20px 1fr; align-items: start; }
+        .export-quiz__blanks input { width: min(100%, 360px); border: 1px solid #d8ded8; border-radius: 6px; padding: 10px; }
+        .export-quiz .is-correct { border-color: #17806d; background: #e7f4ef; }
+        .export-quiz .is-wrong { border-color: #c95f4f; background: #fff0ec; }
+        .export-quiz__feedback { min-height: 24px; margin: 12px 0 0; font-weight: 700; }
+        .export-quiz__feedback.is-success { color: #115e59; }
+        .export-quiz__feedback.is-error { color: #9f3f2f; }
     </style>
 </head>
 <body>
@@ -667,6 +753,85 @@ function exportOnePageHtml() {
     <h1>Карта интерактивного урока</h1>
     ${sections}
 </main>
+<script>
+    const normalizeAnswer = (value) => value.trim().toLowerCase().replaceAll("ё", "е");
+
+    function setFeedback(quiz, isCorrect) {
+        const feedback = quiz.querySelector("[data-export-quiz-feedback]");
+        const hint = feedback?.dataset.hint || "";
+        if (!feedback) return;
+
+        feedback.textContent = isCorrect ? \`Верно. \${hint}\` : \`Пока нет. \${hint}\`;
+        feedback.classList.toggle("is-success", isCorrect);
+        feedback.classList.toggle("is-error", !isCorrect);
+    }
+
+    function markLabel(input, isCorrect) {
+        const label = input.closest("label");
+        if (!label) return;
+
+        label.classList.remove("is-correct", "is-wrong");
+        if (input.checked || input.type === "text") {
+            label.classList.add(isCorrect ? "is-correct" : "is-wrong");
+        }
+    }
+
+    function checkChoiceQuiz(quiz) {
+        const inputs = [...quiz.querySelectorAll("input[type='radio'], input[type='checkbox']")];
+        const selected = inputs.filter((input) => input.checked);
+        const correct = inputs.filter((input) => input.dataset.correct === "true");
+
+        if (!selected.length) {
+            setFeedback(quiz, false);
+            return;
+        }
+
+        const selectedValues = new Set(selected.map((input) => input.value));
+        const correctValues = new Set(correct.map((input) => input.value));
+        const isCorrect = selectedValues.size === correctValues.size
+            && [...correctValues].every((value) => selectedValues.has(value));
+
+        inputs.forEach((input) => {
+            markLabel(input, input.checked === (input.dataset.correct === "true"));
+        });
+        setFeedback(quiz, isCorrect);
+    }
+
+    function checkBooleanQuiz(quiz) {
+        const input = quiz.querySelector("input[type='checkbox'][data-correct-checked]");
+        if (!input) return;
+
+        const isCorrect = input.checked === (input.dataset.correctChecked === "true");
+        const label = input.closest("label");
+        label?.classList.remove("is-correct", "is-wrong");
+        label?.classList.add(isCorrect ? "is-correct" : "is-wrong");
+        setFeedback(quiz, isCorrect);
+    }
+
+    function checkBlanksQuiz(quiz) {
+        const inputs = [...quiz.querySelectorAll("input[data-answer]")];
+        const isCorrect = inputs.every((input) => {
+            const fieldIsCorrect = normalizeAnswer(input.value) === normalizeAnswer(input.dataset.answer || "");
+            input.classList.toggle("is-correct", fieldIsCorrect);
+            input.classList.toggle("is-wrong", !fieldIsCorrect);
+            markLabel(input, fieldIsCorrect);
+            return fieldIsCorrect;
+        });
+        setFeedback(quiz, isCorrect);
+    }
+
+    document.querySelectorAll("[data-export-quiz]").forEach((quiz) => {
+        quiz.querySelector("[data-export-quiz-check]")?.addEventListener("click", () => {
+            if (quiz.dataset.exportQuizType === "blanks") {
+                checkBlanksQuiz(quiz);
+            } else if (quiz.dataset.exportQuizType === "boolean") {
+                checkBooleanQuiz(quiz);
+            } else {
+                checkChoiceQuiz(quiz);
+            }
+        });
+    });
+<\/script>
 </body>
 </html>`;
 
