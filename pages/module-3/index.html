@@ -107,6 +107,41 @@
                 </ul>
             </article>
 
+            <article class="lesson-card sorting-task" data-sorting-task>
+                <h2>Интерактивный пример: отсортируйте механики</h2>
+                <p>Разложите карточки по трем зонам. Задание проверяет, можете ли вы отличить задачи для квиза, drag-and-drop и общей интерактивности по смыслу учебного действия.</p>
+
+                <div class="sorting-task__source" data-sorting-source aria-label="Карточки для сортировки">
+                    <button class="sorting-card" type="button" draggable="true" data-card="feedback" data-target="quiz">Объяснить, почему выбранный ответ неверен</button>
+                    <button class="sorting-card" type="button" draggable="true" data-card="categories" data-target="drag">Разнести примеры по категориям риска</button>
+                    <button class="sorting-card" type="button" draggable="true" data-card="action" data-target="interactive">Связать действие слушателя с учебной целью</button>
+                    <button class="sorting-card" type="button" draggable="true" data-card="sequence" data-target="drag">Восстановить порядок этапов процесса</button>
+                    <button class="sorting-card" type="button" draggable="true" data-card="distractors" data-target="quiz">Подобрать правдоподобные неверные варианты</button>
+                    <button class="sorting-card" type="button" draggable="true" data-card="not-decoration" data-target="interactive">Не добавлять клики без учебного смысла</button>
+                </div>
+
+                <div class="sorting-task__zones">
+                    <section class="sorting-zone" data-zone="quiz" aria-label="Зона Квиз">
+                        <h3>Квиз</h3>
+                        <p>Проверка понимания, ответы, дистракторы, фидбек.</p>
+                    </section>
+                    <section class="sorting-zone" data-zone="drag" aria-label="Зона Drag-and-drop">
+                        <h3>Drag-and-drop</h3>
+                        <p>Сортировка, сопоставление, последовательность, схема.</p>
+                    </section>
+                    <section class="sorting-zone" data-zone="interactive" aria-label="Зона Полезная интерактивность">
+                        <h3>Полезная интерактивность</h3>
+                        <p>Связь действия с учебной целью, а не декоративные клики.</p>
+                    </section>
+                </div>
+
+                <div class="sorting-task__actions">
+                    <button class="button button--primary" type="button" data-sorting-check>Проверить</button>
+                    <button class="button button--secondary" type="button" data-sorting-reset>Сбросить</button>
+                    <span class="sorting-task__status" data-sorting-status aria-live="polite"></span>
+                </div>
+            </article>
+
             <article class="callout">
                 <h2>Практическое задание</h2>
                 <p>Выберите фрагмент своего урока, где нужно показать связи между элементами: категории, порядок, пары или структуру. Опишите элементы, зоны ответа, критерии правильности и обратную связь для типичной ошибки.</p>
