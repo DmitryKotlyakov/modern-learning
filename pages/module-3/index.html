@@ -1,12 +1,118 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Модуль 3 · Drag-and-drop и сортировка</title><link rel="stylesheet" href="../../styles/style.css"><script type="module" src="../../scripts/main.js" defer></script></head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 3 · Drag-and-drop и сортировка</title>
+    <link rel="stylesheet" href="../../styles/style.css">
+    <script type="module" src="../../scripts/main.js" defer></script>
+</head>
 <body data-page="module" data-module="3">
-<header class="site-header"><a class="brand" href="../../"><span class="brand__mark">LM</span><span class="brand__text">Механики вовлечения</span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button><nav class="site-nav" id="site-nav" aria-label="Основная навигация"><a href="../../" data-nav-link>Обзор</a><a href="../module-1/" data-nav-link>Модули</a><a href="../project/" data-nav-link>Проект</a></nav></header>
-<main><section class="page-hero"><p class="eyebrow">Модуль 3 · 90 мин</p><h1>Drag-and-drop и сортировка</h1><p>Модуль посвящен заданиям, где слушатель сопоставляет, раскладывает, собирает схему или упорядочивает элементы.</p><div class="page-hero__meta"><span class="tag">Drag-and-drop</span><span class="tag">Сортировка</span><span class="tag">Схемы</span></div></section>
-<section class="content-layout"><aside class="course-sidebar"><div class="sidebar-title">Модули курса</div><nav class="module-menu" data-module-menu></nav></aside><div class="module-content">
-<div class="module-objectives"><article><h3>Цель</h3><p>Проектировать задания, где действие руками несет смысл.</p></article><article><h3>Практика</h3><p>Собрать упражнение на сопоставление или сортировку.</p></article><article><h3>Результат</h3><p>Интерактивное задание с проверяемым результатом.</p></article></div>
-<article class="lesson-card"><h2>Материал модуля</h2><ul class="bullets"><li>Когда использовать перетаскивание вместо обычного вопроса.</li><li>Подготовка фоновой схемы, зон ответа и перетаскиваемых элементов.</li><li>Типовые ошибки: слишком мелкие зоны, неоднозначные пары, перегруженный экран.</li></ul></article>
-<article class="callout"><h2>Практическое задание</h2><p>Создайте задание, где слушатель сортирует элементы процесса, сопоставляет термины с примерами или собирает структуру урока.</p></article>
-<article class="lesson-card"><h2>Чек-лист самопроверки</h2><div class="progress-meter"><div class="progress-meter__bar" data-progress-bar></div></div><p>Готово: <span data-progress-text>0 из 5</span></p><div class="checklist" data-checklist></div></article>
-</div></section></main></body></html>
+<header class="site-header">
+    <a class="brand" href="../../"><span class="brand__mark">LM</span><span class="brand__text">Механики вовлечения</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button>
+    <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="../../" data-nav-link>Обзор</a>
+        <a href="../module-1/" data-nav-link>Модули</a>
+        <a href="../project/" data-nav-link>Проект</a>
+    </nav>
+</header>
+
+<main>
+    <section class="page-hero">
+        <p class="eyebrow">Модуль 3 · 90 мин</p>
+        <h1>Drag-and-drop и сортировка</h1>
+        <p>В третьем модуле разбираем задания, где слушатель не просто выбирает ответ, а физически раскладывает элементы: сопоставляет понятия с примерами, сортирует карточки по категориям, собирает последовательность или отмечает части схемы. Такая механика полезна, когда учебная цель связана со структурой, классификацией, порядком действий или распознаванием связей.</p>
+        <div class="page-hero__meta">
+            <span class="tag">Drag-and-drop</span>
+            <span class="tag">Сортировка</span>
+            <span class="tag">Схемы</span>
+        </div>
+    </section>
+
+    <section class="content-layout">
+        <aside class="course-sidebar">
+            <div class="sidebar-title">Модули курса</div>
+            <nav class="module-menu" data-module-menu aria-label="Навигация по модулям"></nav>
+        </aside>
+
+        <div class="module-content">
+            <div class="module-objectives">
+                <article>
+                    <h3>Цель</h3>
+                    <p>Понять, когда действие руками действительно помогает освоить материал, а когда только усложняет интерфейс.</p>
+                </article>
+                <article>
+                    <h3>Практика</h3>
+                    <p>Спроектировать упражнение на сопоставление, сортировку, сборку схемы или восстановление порядка.</p>
+                </article>
+                <article>
+                    <h3>Результат</h3>
+                    <p>Интерактивное задание с понятными зонами ответа, критериями проверки и обратной связью.</p>
+                </article>
+            </div>
+
+            <article class="lesson-card">
+                <h2>Когда drag-and-drop оправдан</h2>
+                <p>Перетаскивание стоит использовать не ради ощущения интерактивности, а когда само действие похоже на учебную задачу. Если слушатель должен увидеть структуру, разложить элементы по группам, восстановить последовательность или связать части схемы, drag-and-drop делает мышление видимым.</p>
+                <ul class="bullets">
+                    <li><strong>Классификация:</strong> разнести примеры по категориям, признакам или уровням риска.</li>
+                    <li><strong>Сопоставление:</strong> связать термин с определением, проблему с решением, этап с действием.</li>
+                    <li><strong>Последовательность:</strong> восстановить порядок процесса, алгоритма или сценария.</li>
+                    <li><strong>Сборка структуры:</strong> расположить элементы на схеме, интерфейсе, карте процесса или шаблоне.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Чем сортировка отличается от квиза</h2>
+                <p>Квиз чаще проверяет выбор ответа, а сортировка проверяет отношения между несколькими объектами. В хорошем задании слушатель должен удерживать в голове не одну правильную фразу, а систему связей: какие элементы похожи, чем отличаются, что идет раньше, а что зависит от другого.</p>
+                <ul class="bullets">
+                    <li>Сортировка лучше подходит, когда у задания несколько элементов и несколько возможных ошибок.</li>
+                    <li>Сопоставление полезно, если важно отличить близкие понятия или типичные ситуации.</li>
+                    <li>Упорядочивание работает для процессов, где ошибка в шаге меняет результат всего действия.</li>
+                    <li>Размещение на схеме помогает проверить понимание пространства, интерфейса или структуры документа.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Из чего состоит задание</h2>
+                <p>Перед сборкой в H5P или Lumi задание лучше описать как систему: что перетаскивается, куда это можно положить, как система поймет правильность и что увидит слушатель после попытки. Такой черновик снижает риск неоднозначных зон и случайных правильных ответов.</p>
+                <ul class="bullets">
+                    <li><strong>Элементы:</strong> карточки, слова, фрагменты процесса, изображения или маркеры.</li>
+                    <li><strong>Зоны ответа:</strong> категории, поля схемы, пустые места в тексте, этапы процесса.</li>
+                    <li><strong>Критерии:</strong> какие сочетания считаются правильными, частично правильными или ошибочными.</li>
+                    <li><strong>Фидбек:</strong> объяснение, почему элемент относится именно к этой зоне или почему порядок нарушен.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Как собрать в H5P / Lumi</h2>
+                <p>Для простых онлайн-курсов достаточно начать с готовых типов H5P: Drag and Drop, Drag the Words, Sort the Paragraphs или похожих упражнений на сопоставление и порядок. Важно сначала подготовить макет задания, а уже потом переносить его в инструмент.</p>
+                <ul class="bullets">
+                    <li>Сначала определите учебное действие: классифицировать, сопоставить, собрать или упорядочить.</li>
+                    <li>Сделайте зоны достаточно крупными и подпишите их так, чтобы смысл был понятен без инструкции на полэкрана.</li>
+                    <li>Проверьте задание на мобильной ширине: мелкое перетаскивание часто ломает опыт прохождения.</li>
+                    <li>Добавьте фидбек не только на итог, но и на типичную ошибку, если инструмент это позволяет.</li>
+                </ul>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Типичные ошибки проектирования</h2>
+                <p>Главная проблема drag-and-drop заданий в том, что они быстро становятся интерфейсной головоломкой вместо учебного упражнения. Если слушатель тратит больше сил на попадание в зону, чем на смысл выбора, механика начинает мешать.</p>
+                <ul class="bullets">
+                    <li>Слишком много карточек на одном экране, из-за чего задание превращается в уборку элементов.</li>
+                    <li>Неоднозначные категории, когда один и тот же элемент можно честно положить в разные зоны.</li>
+                    <li>Мелкие или близко расположенные зоны ответа, особенно на телефоне или планшете.</li>
+                    <li>Отсутствие объяснения после ошибки: слушатель видит результат, но не понимает правило сортировки.</li>
+                </ul>
+            </article>
+
+            <article class="callout">
+                <h2>Практическое задание</h2>
+                <p>Выберите фрагмент своего урока, где нужно показать связи между элементами: категории, порядок, пары или структуру. Опишите элементы, зоны ответа, критерии правильности и обратную связь для типичной ошибки.</p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>
