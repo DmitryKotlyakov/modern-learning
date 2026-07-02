@@ -1,6 +1,6 @@
-import { modules } from "./course-data.js?v=11";
-import { renderSiteProgress } from "./site-progress.js?v=11";
-import { renderModuleMenu } from "./navigation.js?v=11";
+import { modules } from "./course-data.js";
+import { renderSiteProgress } from "./site-progress.js";
+import { renderModuleMenu } from "./navigation.js";
 
 const STORAGE_PREFIX = "learning-mechanics:artifact:";
 const ARTIFACT_DONE_PREFIX = "learning-mechanics:artifact-complete:";
@@ -35,8 +35,6 @@ const setArtifact = (moduleId, values) => {
     localStorage.setItem(getStorageKey(moduleId), JSON.stringify(values));
 };
 
-const getQuizQuestions = (values) => Array.isArray(values.questions) ? values.questions : [];
-
 const getQuestionTemplate = (type) => ({
     id: `question-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     type,
@@ -48,6 +46,52 @@ const getQuestionTemplate = (type) => ({
     correctBoolean: "no",
     answers: type === "blanks" ? [""] : []
 });
+
+const normalizeQuizQuestion = (question = {}) => {
+    const type = Object.hasOwn(quizTypes, question.type) ? question.type : "single";
+    const normalized = {
+        id: question.id || `question-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type,
+        prompt: String(question.prompt ?? ""),
+        hint: String(question.hint ?? "")
+    };
+
+    if (type === "single" || type === "multiple") {
+        const options = Array.isArray(question.options)
+            ? question.options.slice(0, 6).map((option) => String(option ?? ""))
+            : [];
+        while (options.length < 2) options.push("");
+
+        const correctIndex = Number(question.correctIndex);
+        const validCorrectIndex = Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < options.length
+            ? correctIndex
+            : 0;
+
+        normalized.options = options;
+        normalized.correctIndex = String(validCorrectIndex);
+        normalized.correctIndexes = [...new Set(Array.isArray(question.correctIndexes) ? question.correctIndexes : [])]
+            .map((value) => Number(value))
+            .filter((value) => Number.isInteger(value) && value >= 0 && value < options.length)
+            .map(String);
+    }
+
+    if (type === "boolean") {
+        normalized.correctBoolean = question.correctBoolean === "yes" ? "yes" : "no";
+    }
+
+    if (type === "blanks") {
+        const answers = Array.isArray(question.answers)
+            ? question.answers.slice(0, 6).map((answer) => String(answer ?? ""))
+            : [""];
+        normalized.answers = answers.length ? answers : [""];
+    }
+
+    return normalized;
+};
+
+const getQuizQuestions = (values) => Array.isArray(values.questions)
+    ? values.questions.slice(0, MAX_QUIZ_QUESTIONS).map(normalizeQuizQuestion)
+    : [];
 
 const getQuestionCount = (values) => getQuizQuestions(values)
     .filter((question) => String(question.prompt ?? "").trim()).length;
@@ -64,7 +108,10 @@ const getFilledCount = (module, values) => {
 };
 
 const collectProject = () => modules.map((module) => {
-    const values = getArtifact(module.id);
+    const storedValues = getArtifact(module.id);
+    const values = module.id === QUIZ_BANK_MODULE_ID
+        ? { ...storedValues, questions: getQuizQuestions(storedValues) }
+        : storedValues;
     const filled = getFilledCount(module, values);
 
     return {
@@ -166,6 +213,13 @@ function renderQuizBankForm(module, content) {
     const moduleId = module.id;
     const saved = getArtifact(moduleId);
     let questions = getQuizQuestions(saved);
+
+    if (Array.isArray(saved.questions) && saved.questions.length !== questions.length) {
+        setArtifact(moduleId, {
+            ...saved,
+            questions
+        });
+    }
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
@@ -406,7 +460,9 @@ function renderQuestionBody(question, index) {
 }
 
 function collectQuizQuestions(form) {
-    return [...form.querySelectorAll("[data-question-index]")].map((questionElement) => {
+    return [...form.querySelectorAll(".quiz-builder__question[data-question-index]")]
+        .slice(0, MAX_QUIZ_QUESTIONS)
+        .map((questionElement) => {
         const type = questionElement.dataset.questionType;
         const prompt = questionElement.querySelector("[data-question-field='prompt']")?.value ?? "";
         const hint = questionElement.querySelector("[data-question-field='hint']")?.value ?? "";
@@ -434,7 +490,7 @@ function collectQuizQuestions(form) {
                 .map((input) => input.value);
         }
 
-        return question;
+        return normalizeQuizQuestion(question);
     });
 }
 

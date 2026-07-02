@@ -1,4 +1,4 @@
-import { moduleChecklist } from "./course-data.js?v=11";
+import { moduleChecklist } from "./course-data.js";
 
 const storageKey = (moduleId) => `learning-mechanics:module-${moduleId}:checklist`;
 

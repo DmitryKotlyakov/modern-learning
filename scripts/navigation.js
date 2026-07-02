@@ -1,5 +1,5 @@
-import { modules } from "./course-data.js?v=11";
-import { isArtifactComplete, isModuleVisited } from "./site-progress.js?v=11";
+import { modules } from "./course-data.js";
+import { isArtifactComplete, isModuleVisited } from "./site-progress.js";
 
 const getBasePath = () => (window.location.pathname.includes("/pages/") ? "../" : "pages/");
 
