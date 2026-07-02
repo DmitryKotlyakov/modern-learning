@@ -692,27 +692,27 @@ function renderInteractionExercises(container, exercises) {
             </div>
             <label class="quiz-builder__field">
                 <span>Название</span>
-                <input type="text" data-exercise-field="title" value="${escapeHtml(exercise.title)}" placeholder="Например: сортировка ошибок фидбека">
+                <input type="text" data-exercise-field="title" value="${escapeHtml(exercise.title)}" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "title"))}">
             </label>
             <label class="quiz-builder__field">
                 <span>Инструкция для слушателя</span>
-                <textarea data-exercise-field="instruction" rows="3" placeholder="Что нужно сделать?">${escapeHtml(exercise.instruction)}</textarea>
+                <textarea data-exercise-field="instruction" rows="3" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "instruction"))}">${escapeHtml(exercise.instruction)}</textarea>
             </label>
             <label class="quiz-builder__field">
                 <span>${exercise.type === "ranking" ? "Шаги или элементы порядка" : "Карточки для сортировки"}</span>
-                <textarea data-exercise-field="items" rows="4" placeholder="Каждый элемент с новой строки">${escapeHtml(exercise.items)}</textarea>
+                <textarea data-exercise-field="items" rows="5" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "items"))}">${escapeHtml(exercise.items)}</textarea>
             </label>
             <label class="quiz-builder__field">
                 <span>${exercise.type === "ranking" ? "Правильный порядок" : "Зоны и правильное распределение"}</span>
-                <textarea data-exercise-field="targetStructure" rows="4" placeholder="${exercise.type === "ranking" ? "1. Первый шаг..." : "Зона A: карточки..."}">${escapeHtml(exercise.targetStructure)}</textarea>
+                <textarea data-exercise-field="targetStructure" rows="5" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "targetStructure"))}">${escapeHtml(exercise.targetStructure)}</textarea>
             </label>
             <label class="quiz-builder__field">
                 <span>Критерии правильности</span>
-                <textarea data-exercise-field="successCriteria" rows="3" placeholder="Как система или преподаватель поймет, что ответ верный?">${escapeHtml(exercise.successCriteria)}</textarea>
+                <textarea data-exercise-field="successCriteria" rows="3" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "successCriteria"))}">${escapeHtml(exercise.successCriteria)}</textarea>
             </label>
             <label class="quiz-builder__field">
                 <span>Подсказка или фидбек</span>
-                <textarea data-exercise-field="feedback" rows="3" placeholder="Что увидит слушатель после ошибки или верного решения?">${escapeHtml(exercise.feedback)}</textarea>
+                <textarea data-exercise-field="feedback" rows="3" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "feedback"))}">${escapeHtml(exercise.feedback)}</textarea>
             </label>
             <div class="interaction-preview">
                 <div class="interaction-preview__top">
@@ -735,6 +735,29 @@ function parseLines(value) {
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean);
+}
+
+function getInteractionPlaceholder(type, field) {
+    const placeholders = {
+        sorting: {
+            title: "Например: Сортировка ошибок фидбека",
+            instruction: "Формат: короткая команда для слушателя.\nНапример: Разложите примеры по типам учебных механик.",
+            items: "Формат: одна карточка на строку.\nНапример:\nОбъяснить ошибку после ответа\nРазнести примеры по категориям\nВосстановить порядок процесса",
+            targetStructure: "Формат: Зона: карточка 1, карточка 2\nНазвания карточек должны совпадать с полем выше.\nНапример:\nКвиз: Объяснить ошибку после ответа\nDrag-and-drop: Разнести примеры по категориям, Восстановить порядок процесса",
+            successCriteria: "Формат: как выглядит правильная раскладка.\nНапример: Все карточки находятся в своих зонах; частичный ответ не засчитывается.",
+            feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Проверьте, какое учебное действие выполняет слушатель: выбирает ответ или распределяет элементы."
+        },
+        ranking: {
+            title: "Например: Порядок проектирования drag-and-drop задания",
+            instruction: "Формат: короткая команда для слушателя.\nНапример: Расставьте шаги проектирования в правильной последовательности.",
+            items: "Формат: один шаг на строку. Можно дать шаги в перемешанном порядке.\nНапример:\nПроверить удобство на мобильной ширине\nОпределить учебное действие\nДобавить фидбек\nВыбрать карточки и зоны",
+            targetStructure: "Формат: правильный порядок, один шаг на строку.\nТекст шагов должен совпадать с полем выше.\nНапример:\nОпределить учебное действие\nВыбрать карточки и зоны\nПроверить удобство на мобильной ширине\nДобавить фидбек",
+            successCriteria: "Формат: правило проверки порядка.\nНапример: Каждый шаг стоит на своей позиции; порядок считается неверным, если перепутан хотя бы один этап.",
+            feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Сначала формулируется учебная задача, затем элементы и зоны, потом интерфейс и фидбек."
+        }
+    };
+
+    return placeholders[type]?.[field] || "";
 }
 
 function getZoneKey(index) {
