@@ -14,6 +14,7 @@ const MAX_QUIZ_QUESTIONS = 10;
 const MAX_INTERACTION_EXERCISES = 5;
 const MAX_SCENARIO_NODES = 5;
 const MAX_GAME_MECHANICS = 6;
+const MAX_GAME_METRICS = 5;
 
 const quizTypes = {
     single: "Один выбор",
@@ -192,6 +193,19 @@ const getGameMechanicTemplate = () => ({
     purpose: ""
 });
 
+const getGameMetricTemplate = (title = "", value = "5") => ({
+    id: `metric-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    title,
+    value,
+    note: ""
+});
+
+const getDefaultGameMetrics = () => [
+    getGameMetricTemplate("Смысл для обучения", "5"),
+    getGameMetricTemplate("Мотивация", "5"),
+    getGameMetricTemplate("Риск декоративности", "2")
+];
+
 const normalizeGameMechanic = (mechanic = {}) => {
     if (typeof mechanic === "string") {
         const option = challengeOptions.find((item) => item.id === mechanic);
@@ -217,6 +231,26 @@ const normalizeGameMechanic = (mechanic = {}) => {
 const getGameMechanics = (values) => Array.isArray(values.gameMechanics)
     ? values.gameMechanics.slice(0, MAX_GAME_MECHANICS).map(normalizeGameMechanic)
     : [];
+
+const normalizeGameMetric = (metric = {}) => {
+    const rawValue = Number(metric.value);
+    const value = Number.isFinite(rawValue) ? Math.max(0, Math.min(10, Math.round(rawValue))) : 5;
+
+    return {
+        id: metric.id || `metric-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title: String(metric.title ?? ""),
+        value: String(value),
+        note: String(metric.note ?? "")
+    };
+};
+
+const getGameMetrics = (values, useDefaults = false) => {
+    if (Array.isArray(values.gameMetrics)) {
+        return values.gameMetrics.slice(0, MAX_GAME_METRICS).map(normalizeGameMetric);
+    }
+
+    return useDefaults ? getDefaultGameMetrics() : [];
+};
 
 const getGameScores = (mechanics) => mechanics.reduce((result, mechanic) => ({
     cost: result.cost + Number(mechanic.cost || 0),
@@ -267,9 +301,12 @@ const getFilledCount = (module, values) => {
     }
 
     if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
+        const gameMechanics = getGameMechanics(values);
+        const gameMetrics = getGameMetrics(values);
         return [
             String(values.targetBehavior ?? "").trim(),
-            getGameMechanics(values).some((mechanic) => String(mechanic.title || mechanic.purpose).trim()) ? "gameMechanics" : "",
+            gameMechanics.some((mechanic) => String(mechanic.title || mechanic.purpose).trim())
+                || gameMetrics.some((metric) => String(metric.title || metric.note).trim()) ? "gameMechanics" : "",
             String(values.riskCheck ?? "").trim()
         ].filter(Boolean).length;
     }
@@ -296,6 +333,7 @@ const collectProject = () => modules.map((module) => {
         values = {
             targetBehavior: storedValues.targetBehavior ?? "",
             gameMechanics: getGameMechanics(storedValues),
+            gameMetrics: getGameMetrics(storedValues),
             riskCheck: storedValues.riskCheck ?? ""
         };
     }
@@ -636,6 +674,7 @@ function renderGamificationBuilderForm(module, content) {
     const moduleId = module.id;
     const saved = getArtifact(moduleId);
     let gameMechanics = getGameMechanics(saved);
+    let gameMetrics = getGameMetrics(saved, true);
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
@@ -673,6 +712,7 @@ function renderGamificationBuilderForm(module, content) {
                             <div class="game-meter__label"><span>Использовано бюджета</span><strong data-game-builder-cost>0 / ${maxBudget}</strong></div>
                             <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--saved" data-game-builder-cost-meter></div></div>
                         </div>
+                        <div class="game-builder__metric-preview" data-game-metrics-preview></div>
 
                         <div class="game-badges" data-game-builder-badges aria-label="Полученные бейджи"></div>
                         <div class="game-feedback" data-game-builder-feedback aria-live="polite"></div>
@@ -680,6 +720,15 @@ function renderGamificationBuilderForm(module, content) {
                     </div>
                 </div>
             </div>
+
+            <div class="quiz-builder__panel">
+                <div>
+                    <h3>Показатели</h3>
+                    <p data-game-metrics-count>${gameMetrics.length} из ${MAX_GAME_METRICS}</p>
+                </div>
+                <button class="button button--secondary" type="button" data-add-game-metric>Добавить показатель</button>
+            </div>
+            <div class="game-builder__metrics" data-game-metrics-list></div>
 
             <label class="artifact-field" for="artifact-riskCheck">
                 <span>Как избежать декоративности</span>
@@ -699,20 +748,27 @@ function renderGamificationBuilderForm(module, content) {
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-game-mechanics-list]");
+    const metricList = form.querySelector("[data-game-metrics-list]");
+    const metricCount = form.querySelector("[data-game-metrics-count]");
     const status = form.querySelector("[data-artifact-status]");
 
     const rerender = (message = "") => {
         renderGameMechanicRows(list, gameMechanics);
-        updateGameBuilderPreview(artifactForm, gameMechanics);
+        renderGameMetricRows(metricList, gameMetrics);
+        if (metricCount) metricCount.textContent = `${gameMetrics.length} из ${MAX_GAME_METRICS}`;
+        updateGameBuilderPreview(artifactForm, gameMechanics, gameMetrics);
         status.textContent = message;
     };
 
     const sync = (message = "Черновик сохранен") => {
         gameMechanics = collectGameMechanics(artifactForm);
-        updateGameBuilderPreview(artifactForm, gameMechanics);
+        gameMetrics = collectGameMetrics(artifactForm);
+        if (metricCount) metricCount.textContent = `${gameMetrics.length} из ${MAX_GAME_METRICS}`;
+        updateGameBuilderPreview(artifactForm, gameMechanics, gameMetrics);
         setArtifact(moduleId, {
             targetBehavior: artifactForm.elements.targetBehavior.value,
             gameMechanics,
+            gameMetrics,
             riskCheck: artifactForm.elements.riskCheck.value
         });
         status.textContent = message;
@@ -723,6 +779,8 @@ function renderGamificationBuilderForm(module, content) {
     artifactForm.addEventListener("click", (event) => {
         const addButton = event.target.closest("[data-add-game-mechanic]");
         const removeButton = event.target.closest("[data-remove-game-mechanic]");
+        const addMetricButton = event.target.closest("[data-add-game-metric]");
+        const removeMetricButton = event.target.closest("[data-remove-game-metric]");
 
         if (addButton) {
             gameMechanics = collectGameMechanics(artifactForm);
@@ -739,6 +797,24 @@ function renderGamificationBuilderForm(module, content) {
             gameMechanics = collectGameMechanics(artifactForm)
                 .filter((_, index) => index !== Number(removeButton.dataset.removeGameMechanic));
             rerender("Механика удалена");
+            sync("Черновик сохранен");
+        }
+
+        if (addMetricButton) {
+            gameMetrics = collectGameMetrics(artifactForm);
+            if (gameMetrics.length >= MAX_GAME_METRICS) {
+                status.textContent = `Максимум ${MAX_GAME_METRICS} показателей`;
+                return;
+            }
+            gameMetrics.push(getGameMetricTemplate());
+            rerender("Показатель добавлен");
+            sync("Черновик сохранен");
+        }
+
+        if (removeMetricButton) {
+            gameMetrics = collectGameMetrics(artifactForm)
+                .filter((_, index) => index !== Number(removeMetricButton.dataset.removeGameMetric));
+            rerender("Показатель удален");
             sync("Черновик сохранен");
         }
     });
@@ -786,6 +862,36 @@ function renderGameMechanicRows(container, mechanics) {
     `;
 }
 
+function renderGameMetricRows(container, metrics) {
+    container.innerHTML = metrics.length ? metrics.map((metric, index) => `
+        <article class="scenario-builder__choice game-builder__metric" data-game-metric-index="${index}">
+            <div class="quiz-builder__subhead">
+                <h4>Показатель ${index + 1}</h4>
+                <button class="button button--secondary" type="button" data-remove-game-metric="${index}">Убрать</button>
+            </div>
+            <div class="scenario-builder__choice-grid">
+                <label class="quiz-builder__field">
+                    <span>Название показателя</span>
+                    <input type="text" data-game-metric-field="title" value="${escapeHtml(metric.title)}" placeholder="Например: смысл для обучения, мотивация, риск декоративности">
+                </label>
+                <label class="quiz-builder__field">
+                    <span>Значение: <strong data-game-metric-value-label>${escapeHtml(metric.value)} / 10</strong></span>
+                    <input type="range" min="0" max="10" step="1" data-game-metric-field="value" value="${escapeHtml(metric.value)}">
+                </label>
+            </div>
+            <label class="quiz-builder__field">
+                <span>Что означает это значение</span>
+                <textarea data-game-metric-field="note" rows="2" placeholder="Например: 8 означает, что механика прямо помогает выполнить учебное действие, а не просто украшает урок.">${escapeHtml(metric.note)}</textarea>
+            </label>
+        </article>
+    `).join("") : `
+        <div class="quiz-builder__empty">
+            <h3>Пока нет показателей</h3>
+            <p>Добавьте 2-3 показателя и задайте значения от 0 до 10, чтобы проверить баланс игровых элементов.</p>
+        </div>
+    `;
+}
+
 function collectGameMechanics(form) {
     return [...form.querySelectorAll(".game-builder__mechanic[data-game-mechanic-index]")]
         .slice(0, MAX_GAME_MECHANICS)
@@ -797,9 +903,46 @@ function collectGameMechanics(form) {
         }));
 }
 
-function updateGameBuilderPreview(form, mechanics) {
+function collectGameMetrics(form) {
+    return [...form.querySelectorAll(".game-builder__metric[data-game-metric-index]")]
+        .slice(0, MAX_GAME_METRICS)
+        .map((metricElement) => normalizeGameMetric({
+            id: `metric-${metricElement.dataset.gameMetricIndex}`,
+            title: metricElement.querySelector("[data-game-metric-field='title']")?.value ?? "",
+            value: metricElement.querySelector("[data-game-metric-field='value']")?.value ?? "5",
+            note: metricElement.querySelector("[data-game-metric-field='note']")?.value ?? ""
+        }));
+}
+
+function updateGameMetricLabels(form) {
+    form.querySelectorAll(".game-builder__metric[data-game-metric-index]").forEach((metricElement) => {
+        const value = metricElement.querySelector("[data-game-metric-field='value']")?.value ?? "0";
+        const label = metricElement.querySelector("[data-game-metric-value-label]");
+        if (label) label.textContent = `${value} / 10`;
+    });
+}
+
+function updateGameMetricsPreview(form, metrics) {
+    const preview = form.querySelector("[data-game-metrics-preview]");
+    if (!preview) return;
+
+    const filledMetrics = metrics.filter((metric) => String(metric.title || metric.note).trim());
+    preview.innerHTML = filledMetrics.length ? filledMetrics.map((metric) => `
+        <div class="game-meter">
+            <div class="game-meter__label">
+                <span>${escapeHtml(metric.title || "Показатель")}</span>
+                <strong>${escapeHtml(metric.value)} / 10</strong>
+            </div>
+            <div class="progress-meter"><div class="progress-meter__bar ${/риск/i.test(metric.title) ? "game-meter__bar--risk" : "progress-meter__bar--saved"}" style="width: ${Math.min(100, Number(metric.value || 0) * 10)}%"></div></div>
+        </div>
+    `).join("") : "<p class=\"game-builder__metric-empty\">Добавьте показатели, чтобы видеть баланс механики.</p>";
+}
+
+function updateGameBuilderPreview(form, mechanics, metrics = []) {
     const scores = getGameScores(mechanics);
     const budgetLeft = maxBudget - scores.cost;
+    updateGameMetricLabels(form);
+    updateGameMetricsPreview(form, metrics);
 
     const budget = form.querySelector("[data-game-builder-budget]");
     if (budget) {
@@ -1647,9 +1790,11 @@ function renderExportScenario(values) {
 
 function renderGameMechanicsSummary(values) {
     const mechanics = getGameMechanics(values);
+    const metrics = getGameMetrics(values);
     const filledMechanics = mechanics.filter((mechanic) => String(mechanic.title || mechanic.purpose).trim());
+    const filledMetrics = metrics.filter((metric) => String(metric.title || metric.note).trim());
 
-    if (!filledMechanics.length) return "<span>Пока не добавлены</span>";
+    if (!filledMechanics.length && !filledMetrics.length) return "<span>Пока не добавлены</span>";
 
     const scores = getGameScores(filledMechanics);
     const badges = getGameBadges(filledMechanics, scores);
@@ -1658,9 +1803,17 @@ function renderGameMechanicsSummary(values) {
         <div class="quiz-bank-summary">
             <p><b>Бюджет:</b> использовано ${scores.cost} из ${maxBudget}, осталось ${Math.max(0, maxBudget - scores.cost)}</p>
             <p><b>Бейджи:</b> ${badges.map(escapeHtml).join(", ")}</p>
-            <ul class="bullets">
-                ${filledMechanics.map((mechanic) => `<li><b>${escapeHtml(mechanic.title || "Без названия")}</b> · стоимость ${escapeHtml(mechanic.cost)}: ${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}</li>`).join("")}
-            </ul>
+            ${filledMechanics.length ? `
+                <ul class="bullets">
+                    ${filledMechanics.map((mechanic) => `<li><b>${escapeHtml(mechanic.title || "Без названия")}</b> · стоимость ${escapeHtml(mechanic.cost)}: ${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}</li>`).join("")}
+                </ul>
+            ` : ""}
+            ${filledMetrics.length ? `
+                <p><b>Показатели:</b></p>
+                <ul class="bullets">
+                    ${filledMetrics.map((metric) => `<li><b>${escapeHtml(metric.title || "Показатель")}</b> · ${escapeHtml(metric.value)} / 10${metric.note ? `: ${escapeHtml(metric.note)}` : ""}</li>`).join("")}
+                </ul>
+            ` : ""}
         </div>
     `;
 }

@@ -733,6 +733,17 @@
     padding-left: 1.1rem;
 }
 
+.game-builder__metrics,
+.game-builder__metric-preview {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.game-builder__metric-empty {
+    margin: 0;
+    color: var(--color-muted);
+}
+
 .game-challenge .is-error {
     color: #9f3f2f;
 }
@@ -987,6 +998,8 @@
 
 .quiz-builder__field textarea,
 .quiz-builder__field select,
+.quiz-builder__field input[type="text"],
+.quiz-builder__field input[type="number"],
 .quiz-builder__option input[type="text"],
 .quiz-builder__answer input {
     width: 100%;
@@ -996,6 +1009,11 @@
     color: var(--color-ink);
     background: #fff;
     font-weight: 500;
+}
+
+.quiz-builder__field input[type="range"] {
+    width: 100%;
+    accent-color: var(--color-blue);
 }
 
 .quiz-builder__option {
