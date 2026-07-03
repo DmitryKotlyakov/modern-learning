@@ -213,18 +213,26 @@ const normalizeGameMechanic = (mechanic = {}) => {
             id: option?.id || `game-${Date.now()}-${Math.random().toString(16).slice(2)}`,
             title: option?.title || mechanic,
             cost: String(option?.cost ?? 1),
-            purpose: option?.feedback || ""
+            purpose: option?.feedback || "",
+            metricValues: []
         };
     }
 
     const rawCost = Number(mechanic.cost);
     const cost = Number.isFinite(rawCost) ? Math.max(0, Math.min(10, Math.round(rawCost))) : 1;
+    const metricValues = Array.isArray(mechanic.metricValues)
+        ? mechanic.metricValues.slice(0, MAX_GAME_METRICS).map((value) => {
+            const rawValue = Number(value);
+            return Number.isFinite(rawValue) ? String(Math.max(0, Math.min(10, Math.round(rawValue)))) : "5";
+        })
+        : [];
 
     return {
         id: mechanic.id || `game-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         title: String(mechanic.title ?? ""),
         cost: String(cost),
-        purpose: String(mechanic.purpose ?? "")
+        purpose: String(mechanic.purpose ?? ""),
+        metricValues
     };
 };
 
@@ -753,8 +761,8 @@ function renderGamificationBuilderForm(module, content) {
     const status = form.querySelector("[data-artifact-status]");
 
     const rerender = (message = "") => {
-        renderGameMechanicRows(list, gameMechanics);
         renderGameMetricRows(metricList, gameMetrics);
+        renderGameMechanicRows(list, gameMechanics, gameMetrics);
         if (metricCount) metricCount.textContent = `${gameMetrics.length} из ${MAX_GAME_METRICS}`;
         updateGameBuilderPreview(artifactForm, gameMechanics, gameMetrics);
         status.textContent = message;
@@ -832,7 +840,7 @@ function renderGamificationBuilderForm(module, content) {
     });
 }
 
-function renderGameMechanicRows(container, mechanics) {
+function renderGameMechanicRows(container, mechanics, metrics = []) {
     container.innerHTML = mechanics.length ? mechanics.map((mechanic, index) => `
         <article class="scenario-builder__choice game-builder__mechanic" data-game-mechanic-index="${index}">
             <div class="quiz-builder__subhead">
@@ -853,6 +861,20 @@ function renderGameMechanicRows(container, mechanics) {
                 <span>Как она поддерживает обучение</span>
                 <textarea data-game-mechanic-field="purpose" rows="3" placeholder="Например: показывает, какие проектные шаги уже собраны, и помогает вернуться к незавершенным частям.">${escapeHtml(mechanic.purpose)}</textarea>
             </label>
+            ${metrics.length ? `
+                <div class="game-builder__mechanic-metrics">
+                    <h5>Значения показателей</h5>
+                    ${metrics.map((metric, metricIndex) => {
+                        const value = mechanic.metricValues?.[metricIndex] ?? metric.value ?? "5";
+                        return `
+                            <label class="quiz-builder__field game-builder__mechanic-metric" data-game-mechanic-metric-index="${metricIndex}">
+                                <span><span data-game-mechanic-metric-label>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>: <strong data-game-mechanic-metric-value-label>${escapeHtml(value)} / 10</strong></span>
+                                <input type="range" min="0" max="10" step="1" data-game-mechanic-metric-value="${metricIndex}" value="${escapeHtml(value)}">
+                            </label>
+                        `;
+                    }).join("")}
+                </div>
+            ` : ""}
         </article>
     `).join("") : `
         <div class="quiz-builder__empty">
@@ -899,7 +921,9 @@ function collectGameMechanics(form) {
             id: `game-${mechanicElement.dataset.gameMechanicIndex}`,
             title: mechanicElement.querySelector("[data-game-mechanic-field='title']")?.value ?? "",
             cost: mechanicElement.querySelector("[data-game-mechanic-field='cost']")?.value ?? "1",
-            purpose: mechanicElement.querySelector("[data-game-mechanic-field='purpose']")?.value ?? ""
+            purpose: mechanicElement.querySelector("[data-game-mechanic-field='purpose']")?.value ?? "",
+            metricValues: [...mechanicElement.querySelectorAll("[data-game-mechanic-metric-value]")]
+                .map((input) => input.value ?? "5")
         }));
 }
 
@@ -914,26 +938,49 @@ function collectGameMetrics(form) {
         }));
 }
 
+function getGameMetricAverage(mechanics, metricIndex, fallbackValue = "0") {
+    const values = mechanics
+        .map((mechanic) => Number(mechanic.metricValues?.[metricIndex]))
+        .filter((value) => Number.isFinite(value));
+
+    if (!values.length) return Number(fallbackValue) || 0;
+
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
 function updateGameMetricLabels(form) {
     form.querySelectorAll(".game-builder__metric[data-game-metric-index]").forEach((metricElement) => {
         const value = metricElement.querySelector("[data-game-metric-field='value']")?.value ?? "0";
         const label = metricElement.querySelector("[data-game-metric-value-label]");
         if (label) label.textContent = `${value} / 10`;
     });
+
+    const metrics = collectGameMetrics(form);
+    form.querySelectorAll(".game-builder__mechanic[data-game-mechanic-index]").forEach((mechanicElement) => {
+        mechanicElement.querySelectorAll("[data-game-mechanic-metric-index]").forEach((metricElement) => {
+            const metricIndex = Number(metricElement.dataset.gameMechanicMetricIndex);
+            const input = metricElement.querySelector("[data-game-mechanic-metric-value]");
+            const valueLabel = metricElement.querySelector("[data-game-mechanic-metric-value-label]");
+            const titleLabel = metricElement.querySelector("[data-game-mechanic-metric-label]");
+            if (titleLabel) titleLabel.textContent = metrics[metricIndex]?.title || `Показатель ${metricIndex + 1}`;
+            if (valueLabel) valueLabel.textContent = `${input?.value ?? "0"} / 10`;
+        });
+    });
 }
 
-function updateGameMetricsPreview(form, metrics) {
+function updateGameMetricsPreview(form, metrics, mechanics) {
     const preview = form.querySelector("[data-game-metrics-preview]");
     if (!preview) return;
 
     const filledMetrics = metrics.filter((metric) => String(metric.title || metric.note).trim());
+    const filledMechanics = mechanics.filter((mechanic) => String(mechanic.title || mechanic.purpose).trim());
     preview.innerHTML = filledMetrics.length ? filledMetrics.map((metric) => `
         <div class="game-meter">
             <div class="game-meter__label">
                 <span>${escapeHtml(metric.title || "Показатель")}</span>
-                <strong>${escapeHtml(metric.value)} / 10</strong>
+                <strong>${getGameMetricAverage(filledMechanics, metrics.indexOf(metric), metric.value)} / 10</strong>
             </div>
-            <div class="progress-meter"><div class="progress-meter__bar ${/риск/i.test(metric.title) ? "game-meter__bar--risk" : "progress-meter__bar--saved"}" style="width: ${Math.min(100, Number(metric.value || 0) * 10)}%"></div></div>
+            <div class="progress-meter"><div class="progress-meter__bar ${/риск/i.test(metric.title) ? "game-meter__bar--risk" : "progress-meter__bar--saved"}" style="width: ${Math.min(100, getGameMetricAverage(filledMechanics, metrics.indexOf(metric), metric.value) * 10)}%"></div></div>
         </div>
     `).join("") : "<p class=\"game-builder__metric-empty\">Добавьте показатели, чтобы видеть баланс механики.</p>";
 }
@@ -942,7 +989,7 @@ function updateGameBuilderPreview(form, mechanics, metrics = []) {
     const scores = getGameScores(mechanics);
     const budgetLeft = maxBudget - scores.cost;
     updateGameMetricLabels(form);
-    updateGameMetricsPreview(form, metrics);
+    updateGameMetricsPreview(form, metrics, mechanics);
 
     const budget = form.querySelector("[data-game-builder-budget]");
     if (budget) {
@@ -1805,13 +1852,25 @@ function renderGameMechanicsSummary(values) {
             <p><b>Бейджи:</b> ${badges.map(escapeHtml).join(", ")}</p>
             ${filledMechanics.length ? `
                 <ul class="bullets">
-                    ${filledMechanics.map((mechanic) => `<li><b>${escapeHtml(mechanic.title || "Без названия")}</b> · стоимость ${escapeHtml(mechanic.cost)}: ${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}</li>`).join("")}
+                    ${filledMechanics.map((mechanic) => `
+                        <li>
+                            <b>${escapeHtml(mechanic.title || "Без названия")}</b> · стоимость ${escapeHtml(mechanic.cost)}: ${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}
+                            ${filledMetrics.length ? `
+                                <ul class="bullets">
+                                    ${filledMetrics.map((metric) => {
+                                        const metricIndex = metrics.indexOf(metric);
+                                        return `<li>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}: ${escapeHtml(mechanic.metricValues?.[metricIndex] ?? metric.value ?? "5")} / 10</li>`;
+                                    }).join("")}
+                                </ul>
+                            ` : ""}
+                        </li>
+                    `).join("")}
                 </ul>
             ` : ""}
             ${filledMetrics.length ? `
-                <p><b>Показатели:</b></p>
+                <p><b>Средние значения показателей:</b></p>
                 <ul class="bullets">
-                    ${filledMetrics.map((metric) => `<li><b>${escapeHtml(metric.title || "Показатель")}</b> · ${escapeHtml(metric.value)} / 10${metric.note ? `: ${escapeHtml(metric.note)}` : ""}</li>`).join("")}
+                    ${filledMetrics.map((metric) => `<li><b>${escapeHtml(metric.title || "Показатель")}</b> · ${getGameMetricAverage(filledMechanics, metrics.indexOf(metric), metric.value)} / 10${metric.note ? `: ${escapeHtml(metric.note)}` : ""}</li>`).join("")}
                 </ul>
             ` : ""}
         </div>

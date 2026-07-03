@@ -739,6 +739,18 @@
     gap: 0.75rem;
 }
 
+.game-builder__mechanic-metrics {
+    display: grid;
+    gap: 0.75rem;
+    border-top: 1px solid var(--color-line);
+    padding-top: 0.85rem;
+}
+
+.game-builder__mechanic-metrics h5 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
 .game-builder__metric-empty {
     margin: 0;
     color: var(--color-muted);
