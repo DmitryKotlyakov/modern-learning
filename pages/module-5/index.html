@@ -118,6 +118,40 @@
                 </ul>
             </article>
 
+            <article class="lesson-card game-challenge" data-gamification-challenge>
+                <div class="game-challenge__top">
+                    <div>
+                        <p class="eyebrow">Интерактивный пример</p>
+                        <h2>Соберите мотивационную механику</h2>
+                    </div>
+                    <span class="tag">Бюджет: <strong data-game-budget>5 / 5</strong></span>
+                </div>
+                <p>Выберите 2-3 игровых элемента для проектного онлайн-урока. У вас есть 5 очков дизайна. Хороший набор повышает ясность и мотивацию, но не разгоняет риск декоративности.</p>
+
+                <div class="game-challenge__grid">
+                    <div class="game-options" data-game-options aria-label="Игровые элементы"></div>
+
+                    <div class="game-dashboard">
+                        <div class="game-meter">
+                            <div class="game-meter__label"><span>Ясность учебной цели</span><strong data-game-value="clarity">0 / 10</strong></div>
+                            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--read" data-game-meter="clarity"></div></div>
+                        </div>
+                        <div class="game-meter">
+                            <div class="game-meter__label"><span>Мотивация попробовать</span><strong data-game-value="motivation">0 / 10</strong></div>
+                            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--saved" data-game-meter="motivation"></div></div>
+                        </div>
+                        <div class="game-meter">
+                            <div class="game-meter__label"><span>Риск декоративности</span><strong data-game-value="risk">0 / 10</strong></div>
+                            <div class="progress-meter"><div class="progress-meter__bar game-meter__bar--risk" data-game-meter="risk"></div></div>
+                        </div>
+
+                        <div class="game-badges" data-game-badges aria-label="Полученные бейджи"></div>
+                        <div class="game-feedback" data-game-feedback aria-live="polite"></div>
+                        <button class="button button--secondary" type="button" data-game-reset>Сбросить выбор</button>
+                    </div>
+                </div>
+            </article>
+
             <article class="lesson-card">
                 <h2>Как собрать в H5P / Lumi</h2>
                 <p>В H5P геймификация чаще собирается не одним отдельным типом задания, а сочетанием настроек и контента. Можно использовать Course Presentation, Interactive Book, Question Set, Branching Scenario, шкалы прогресса LMS или простые визуальные статусы внутри урока.</p>

@@ -611,6 +611,132 @@
     border-left: 4px solid #d16d5b;
 }
 
+.game-challenge {
+    display: grid;
+    gap: 1rem;
+}
+
+.game-challenge__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: start;
+    justify-content: space-between;
+}
+
+.game-challenge__top h2,
+.game-challenge__top p,
+.game-challenge > p {
+    margin: 0;
+}
+
+.game-challenge__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.game-options,
+.game-dashboard {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.game-option {
+    display: grid;
+    grid-template-columns: 1.2rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-xs);
+    padding: 0.85rem;
+    background: #fff;
+    cursor: pointer;
+}
+
+.game-option.is-selected {
+    border-color: var(--color-blue);
+    box-shadow: inset 0 0 0 2px var(--color-blue);
+}
+
+.game-option input {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.2rem;
+    accent-color: var(--color-blue);
+}
+
+.game-option span,
+.game-option small {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.game-option small {
+    color: var(--color-muted);
+    font-weight: 700;
+}
+
+.game-dashboard {
+    position: sticky;
+    top: 5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: #fbfaf6;
+}
+
+.game-meter {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.game-meter__label {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    font-weight: 800;
+}
+
+.game-meter__bar--risk {
+    background: #d16d5b;
+}
+
+.game-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 2rem;
+}
+
+.game-badge {
+    border-radius: 999px;
+    padding: 0.35rem 0.65rem;
+    color: #fff;
+    background: var(--color-blue);
+    font-size: 0.85rem;
+    font-weight: 900;
+}
+
+.game-feedback {
+    min-height: 4rem;
+    color: var(--color-muted);
+}
+
+.game-feedback p,
+.game-feedback .bullets {
+    margin: 0;
+}
+
+.game-feedback .bullets {
+    padding-left: 1.1rem;
+}
+
+.game-challenge .is-error {
+    color: #9f3f2f;
+}
+
 .callout {
     background: var(--color-warm-soft);
 }
@@ -1035,10 +1161,15 @@
     .quiz-builder__panel,
     .quiz-builder__add,
     .interaction-builder__add,
+    .game-challenge__grid,
     .quiz-builder__option,
     .quiz-builder__answer,
     .scenario-builder__choice-grid {
         grid-template-columns: 1fr;
+    }
+
+    .game-dashboard {
+        position: static;
     }
 
     .quiz-builder__question-top,
