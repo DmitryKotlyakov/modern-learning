@@ -2,12 +2,14 @@ import { modules } from "./course-data.js";
 import { renderSiteProgress } from "./site-progress.js";
 import { renderModuleMenu } from "./navigation.js";
 import { initSortingTasks } from "./sorting-task.js";
+import { challengeOptions, maxBudget } from "./gamification-challenge.js";
 
 const STORAGE_PREFIX = "learning-mechanics:artifact:";
 const ARTIFACT_DONE_PREFIX = "learning-mechanics:artifact-complete:";
 const QUIZ_BANK_MODULE_ID = 2;
 const INTERACTION_BUILDER_MODULE_ID = 3;
 const SCENARIO_BUILDER_MODULE_ID = 4;
+const GAMIFICATION_BUILDER_MODULE_ID = 5;
 const MAX_QUIZ_QUESTIONS = 10;
 const MAX_INTERACTION_EXERCISES = 5;
 const MAX_SCENARIO_NODES = 5;
@@ -182,6 +184,31 @@ const getScenarioNodes = (values) => Array.isArray(values.scenarioNodes)
     ? values.scenarioNodes.slice(0, MAX_SCENARIO_NODES).map(normalizeScenarioNode)
     : [];
 
+const getGameMechanics = (values) => Array.isArray(values.gameMechanics)
+    ? values.gameMechanics.filter((id) => challengeOptions.some((option) => option.id === id))
+    : [];
+
+const getGameScores = (selectedIds) => challengeOptions
+    .filter((option) => selectedIds.includes(option.id))
+    .reduce((result, option) => ({
+        clarity: result.clarity + option.clarity,
+        motivation: result.motivation + option.motivation,
+        risk: result.risk + option.risk,
+        cost: result.cost + option.cost
+    }), { clarity: 2, motivation: 2, risk: 0, cost: 0 });
+
+const getGameBadges = (selectedIds, scores) => {
+    const badges = [];
+    const ids = new Set(selectedIds);
+
+    if (scores.clarity >= 6 && scores.risk <= 3) badges.push("Не декоративно");
+    if (ids.has("project-progress") && (ids.has("retry-feedback") || ids.has("checklist"))) badges.push("Хороший игровой цикл");
+    if (ids.has("limited-attempts") && !ids.has("timer-reading")) badges.push("Мягкий челлендж");
+    if (!badges.length) badges.push("Нужна доработка");
+
+    return badges;
+};
+
 const getQuestionCount = (values) => getQuizQuestions(values)
     .filter((question) => String(question.prompt ?? "").trim()).length;
 
@@ -213,6 +240,14 @@ const getFilledCount = (module, values) => {
         ].filter(Boolean).length;
     }
 
+    if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
+        return [
+            String(values.targetBehavior ?? "").trim(),
+            getGameMechanics(values).length ? "gameMechanics" : "",
+            String(values.riskCheck ?? "").trim()
+        ].filter(Boolean).length;
+    }
+
     return module.artifactFields.filter((field) => String(values[field.id] ?? "").trim()).length;
 };
 
@@ -229,6 +264,13 @@ const collectProject = () => modules.map((module) => {
         values = {
             situation: storedValues.situation ?? "",
             scenarioNodes: getScenarioNodes(storedValues)
+        };
+    }
+    if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
+        values = {
+            targetBehavior: storedValues.targetBehavior ?? "",
+            gameMechanics: getGameMechanics(storedValues),
+            riskCheck: storedValues.riskCheck ?? ""
         };
     }
     const filled = getFilledCount(module, values);
@@ -277,6 +319,11 @@ function renderArtifactForm() {
 
     if (moduleId === SCENARIO_BUILDER_MODULE_ID) {
         renderScenarioBuilderForm(module, content);
+        return;
+    }
+
+    if (moduleId === GAMIFICATION_BUILDER_MODULE_ID) {
+        renderGamificationBuilderForm(module, content);
         return;
     }
 
@@ -557,6 +604,160 @@ function collectScenarioNodes(form) {
                     next: choiceElement.querySelector("[data-scenario-choice-field='next']")?.value ?? ""
                 }))
         }));
+}
+
+function renderGamificationBuilderForm(module, content) {
+    const moduleId = module.id;
+    const saved = getArtifact(moduleId);
+    const savedMechanics = getGameMechanics(saved);
+
+    const form = document.createElement("article");
+    form.className = "lesson-card artifact-card";
+    form.innerHTML = `
+        <div class="lesson-card__meta">
+            <span class="tag">Сквозной проект</span>
+            <span class="tag">Бюджет ${maxBudget} очков</span>
+        </div>
+        <h2>${escapeHtml(module.artifactTitle)}</h2>
+        <p>Соберите мотивационную механику для своего урока: выберите поведение, игровые элементы и проверьте, не стала ли геймификация декоративной.</p>
+        <form class="artifact-form game-builder" data-artifact-form data-game-builder-form>
+            <label class="artifact-field" for="artifact-targetBehavior">
+                <span>Какое поведение поддерживаем</span>
+                <textarea id="artifact-targetBehavior" name="targetBehavior" rows="4" placeholder="Например: довести проект до сдачи, вернуться к ошибке, пройти сложный кейс второй раз.">${escapeHtml(saved.targetBehavior ?? "")}</textarea>
+            </label>
+
+            <div class="game-challenge game-builder__challenge" data-game-builder-challenge>
+                <div class="game-challenge__top">
+                    <div>
+                        <h3>Игровые элементы</h3>
+                        <p>Выберите 2-3 элемента. Бюджет помогает не перегрузить урок механиками.</p>
+                    </div>
+                    <span class="tag">Бюджет: <strong data-game-builder-budget>${maxBudget} / ${maxBudget}</strong></span>
+                </div>
+
+                <div class="game-challenge__grid">
+                    <div class="game-options">
+                        ${challengeOptions.map((option) => `
+                            <label class="game-option">
+                                <input type="checkbox" name="gameMechanics" value="${escapeHtml(option.id)}" data-game-builder-option="${escapeHtml(option.id)}" ${savedMechanics.includes(option.id) ? "checked" : ""}>
+                                <span>
+                                    <strong>${escapeHtml(option.title)}</strong>
+                                    <small>Стоимость: ${option.cost}. Смысл ${option.clarity >= 0 ? "+" : ""}${option.clarity}, мотивация ${option.motivation >= 0 ? "+" : ""}${option.motivation}, риск +${option.risk}</small>
+                                </span>
+                            </label>
+                        `).join("")}
+                    </div>
+
+                    <div class="game-dashboard">
+                        <div class="game-meter">
+                            <div class="game-meter__label"><span>Ясность учебной цели</span><strong data-game-builder-value="clarity">0 / 10</strong></div>
+                            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--read" data-game-builder-meter="clarity"></div></div>
+                        </div>
+                        <div class="game-meter">
+                            <div class="game-meter__label"><span>Мотивация попробовать</span><strong data-game-builder-value="motivation">0 / 10</strong></div>
+                            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--saved" data-game-builder-meter="motivation"></div></div>
+                        </div>
+                        <div class="game-meter">
+                            <div class="game-meter__label"><span>Риск декоративности</span><strong data-game-builder-value="risk">0 / 10</strong></div>
+                            <div class="progress-meter"><div class="progress-meter__bar game-meter__bar--risk" data-game-builder-meter="risk"></div></div>
+                        </div>
+
+                        <div class="game-badges" data-game-builder-badges aria-label="Полученные бейджи"></div>
+                        <div class="game-feedback" data-game-builder-feedback aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+
+            <label class="artifact-field" for="artifact-riskCheck">
+                <span>Как избежать декоративности</span>
+                <textarea id="artifact-riskCheck" name="riskCheck" rows="4" placeholder="Почему выбранные элементы связаны с учебной задачей? Что вы уберете, если механика начнет отвлекать?">${escapeHtml(saved.riskCheck ?? "")}</textarea>
+            </label>
+
+            <div class="artifact-actions">
+                <button class="button button--primary" type="submit">Сохранить в проект</button>
+                <a class="button button--secondary" href="../project/">Открыть проект</a>
+                <span class="artifact-status" data-artifact-status aria-live="polite"></span>
+            </div>
+        </form>
+    `;
+
+    const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
+    content.insertBefore(form, checklist || null);
+
+    const artifactForm = form.querySelector("[data-artifact-form]");
+    const status = form.querySelector("[data-artifact-status]");
+
+    const sync = (message = "Черновик сохранен") => {
+        const gameMechanics = collectGameMechanics(artifactForm);
+        updateGameBuilderPreview(artifactForm, gameMechanics);
+        setArtifact(moduleId, {
+            targetBehavior: artifactForm.elements.targetBehavior.value,
+            gameMechanics,
+            riskCheck: artifactForm.elements.riskCheck.value
+        });
+        status.textContent = message;
+    };
+
+    updateGameBuilderPreview(artifactForm, savedMechanics);
+
+    artifactForm.addEventListener("input", () => sync());
+    artifactForm.addEventListener("change", () => sync());
+    artifactForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sync("Сохранено");
+        localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`, "true");
+        renderSiteProgress();
+        renderModuleMenu();
+        window.setTimeout(() => {
+            status.textContent = "";
+        }, 1800);
+    });
+}
+
+function collectGameMechanics(form) {
+    return [...form.querySelectorAll("[data-game-builder-option]:checked")]
+        .map((input) => input.value)
+        .filter((id) => challengeOptions.some((option) => option.id === id));
+}
+
+function updateGameBuilderPreview(form, selectedIds) {
+    const scores = getGameScores(selectedIds);
+    const budgetLeft = maxBudget - scores.cost;
+
+    const budget = form.querySelector("[data-game-builder-budget]");
+    if (budget) {
+        budget.textContent = `${Math.max(0, budgetLeft)} / ${maxBudget}`;
+        budget.classList.toggle("is-error", budgetLeft < 0);
+    }
+
+    ["clarity", "motivation", "risk"].forEach((name) => {
+        const score = Math.max(0, Math.min(10, scores[name]));
+        const meter = form.querySelector(`[data-game-builder-meter="${name}"]`);
+        const value = form.querySelector(`[data-game-builder-value="${name}"]`);
+        if (meter) meter.style.width = `${score * 10}%`;
+        if (value) value.textContent = `${score} / 10`;
+    });
+
+    form.querySelectorAll(".game-option").forEach((label) => {
+        const input = label.querySelector("[data-game-builder-option]");
+        label.classList.toggle("is-selected", Boolean(input?.checked));
+    });
+
+    const selectedOptions = challengeOptions.filter((option) => selectedIds.includes(option.id));
+    const feedback = form.querySelector("[data-game-builder-feedback]");
+    const badges = form.querySelector("[data-game-builder-badges]");
+    if (feedback) {
+        const selectedList = selectedOptions.map((option) => `<li>${escapeHtml(option.feedback)}</li>`).join("");
+        const overBudget = budgetLeft < 0 ? "<li>Бюджет превышен: уберите одну механику или замените ее более точной.</li>" : "";
+        feedback.innerHTML = selectedOptions.length
+            ? `<ul class="bullets">${selectedList}${overBudget}</ul>`
+            : "<p>Выберите 2-3 механики и проверьте, как они влияют на смысл, мотивацию и риск декоративности.</p>";
+    }
+    if (badges) {
+        badges.innerHTML = getGameBadges(selectedIds, scores)
+            .map((badge) => `<span class="game-badge">${escapeHtml(badge)}</span>`)
+            .join("");
+    }
 }
 
 function renderQuizBankForm(module, content) {
@@ -1368,6 +1569,27 @@ function renderExportScenario(values) {
     `;
 }
 
+function renderGameMechanicsSummary(values) {
+    const selectedIds = getGameMechanics(values);
+    const selectedOptions = challengeOptions.filter((option) => selectedIds.includes(option.id));
+
+    if (!selectedOptions.length) return "<span>Пока не выбраны</span>";
+
+    const scores = getGameScores(selectedIds);
+    const badges = getGameBadges(selectedIds, scores);
+
+    return `
+        <div class="quiz-bank-summary">
+            <p><b>Бюджет:</b> ${Math.max(0, maxBudget - scores.cost)} / ${maxBudget}</p>
+            <p><b>Метрики:</b> ясность ${Math.max(0, Math.min(10, scores.clarity))} / 10, мотивация ${Math.max(0, Math.min(10, scores.motivation))} / 10, риск ${Math.max(0, Math.min(10, scores.risk))} / 10</p>
+            <p><b>Бейджи:</b> ${badges.map(escapeHtml).join(", ")}</p>
+            <ul class="bullets">
+                ${selectedOptions.map((option) => `<li><b>${escapeHtml(option.title)}</b>: ${escapeHtml(option.feedback)}</li>`).join("")}
+            </ul>
+        </div>
+    `;
+}
+
 function renderProjectFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         const quizGoal = String(values.quizGoal ?? "").trim();
@@ -1411,6 +1633,25 @@ function renderProjectFields(module, values) {
         `;
     }
 
+    if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
+        const targetBehavior = String(values.targetBehavior ?? "").trim();
+        const riskCheck = String(values.riskCheck ?? "").trim();
+        return `
+            <div class="project-field">
+                <dt>Какое поведение поддерживаем</dt>
+                <dd>${targetBehavior ? escapeHtml(targetBehavior).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
+            </div>
+            <div class="project-field">
+                <dt>Игровые элементы</dt>
+                <dd>${renderGameMechanicsSummary(values)}</dd>
+            </div>
+            <div class="project-field">
+                <dt>Как избежать декоративности</dt>
+                <dd>${riskCheck ? escapeHtml(riskCheck).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
+            </div>
+        `;
+    }
+
     return module.artifactFields.map((field) => {
         const value = String(values[field.id] ?? "").trim();
         return `
@@ -1441,6 +1682,14 @@ function renderExportFields(module, values) {
         return `
             <section><h3>Ситуация сценария</h3><p>${escapeHtml(String(values.situation ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
             <section><h3>Дерево решений</h3>${renderExportScenario(values)}</section>
+        `;
+    }
+
+    if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
+        return `
+            <section><h3>Какое поведение поддерживаем</h3><p>${escapeHtml(String(values.targetBehavior ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
+            <section><h3>Игровые элементы</h3>${renderGameMechanicsSummary(values)}</section>
+            <section><h3>Как избежать декоративности</h3><p>${escapeHtml(String(values.riskCheck ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
         `;
     }
 

@@ -1,4 +1,4 @@
-const challengeOptions = [
+export const challengeOptions = [
     {
         id: "project-progress",
         title: "Прогресс по проектным шагам",
@@ -64,7 +64,7 @@ const challengeOptions = [
     }
 ];
 
-const maxBudget = 5;
+export const maxBudget = 5;
 
 const clampScore = (value) => Math.max(0, Math.min(10, value));
 

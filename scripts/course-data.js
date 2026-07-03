@@ -69,7 +69,7 @@ export const modules = [
         artifactTitle: "Мотивационная механика",
         artifactFields: [
             { id: "targetBehavior", label: "Какое поведение поддерживаем", type: "textarea", placeholder: "Дойти до конца, повторить попытку, сравнить варианты..." },
-            { id: "gameElement", label: "Игровой элемент", type: "textarea", placeholder: "Прогресс, уровни, ограничение попыток, бейдж..." },
+            { id: "gameMechanics", label: "Игровые элементы", type: "gamification-builder", placeholder: "Выберите 2-3 механики с учетом бюджета, мотивации и риска декоративности." },
             { id: "riskCheck", label: "Как избежать декоративности", type: "textarea", placeholder: "Почему этот элемент связан с учебной задачей?" }
         ]
     },
