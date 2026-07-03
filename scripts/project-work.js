@@ -1336,25 +1336,28 @@ function renderExportScenario(values) {
     if (!nodes.length) return "<p>Пока не добавлены</p>";
 
     return `
-        <div class="export-interactions">
+        <div class="export-scenario" data-export-scenario>
             ${nodes.map((node, index) => `
-                <section class="export-interaction">
+                <section class="export-interaction export-scenario__node" data-export-scenario-node data-node-index="${index}" data-node-title="${escapeHtml(node.title)}" ${index === 0 ? "" : "hidden"}>
                     <p class="export-quiz__type">Узел ${index + 1}</p>
                     <h3>${escapeHtml(node.title || "Узел без названия")}</h3>
                     <p>${escapeHtml(node.scene || "Сцена пока не описана").replaceAll("\n", "<br>")}</p>
                     <p><b>Вопрос:</b> ${escapeHtml(node.question || "Пока не указан").replaceAll("\n", "<br>")}</p>
                     <div class="export-scenario-choices">
                         ${node.choices.map((choice) => `
-                            <article>
-                                <p><b>${escapeHtml(scenarioChoiceTypes[choice.type])}</b></p>
-                                <p>${escapeHtml(choice.text || "Выбор не заполнен").replaceAll("\n", "<br>")}</p>
-                                <p><b>Последствие:</b> ${escapeHtml(choice.consequence || "Пока не указано").replaceAll("\n", "<br>")}</p>
-                                ${choice.next ? `<p><b>Переход:</b> ${escapeHtml(choice.next)}</p>` : ""}
-                            </article>
+                            <button class="export-scenario-choice export-scenario-choice--${escapeHtml(choice.type)}" type="button" data-scenario-choice data-next="${escapeHtml(choice.next)}" data-consequence="${escapeHtml(choice.consequence || "Пока не указано")}" data-choice-type="${escapeHtml(choice.type)}">
+                                <span>${escapeHtml(choice.text || "Выбор не заполнен")}</span>
+                                <small>${escapeHtml(scenarioChoiceTypes[choice.type])}${choice.next ? ` · переход: ${escapeHtml(choice.next)}` : ""}</small>
+                            </button>
                         `).join("")}
+                    </div>
+                    <div class="export-scenario-result" data-scenario-result hidden>
+                        <p data-scenario-result-text></p>
+                        <button type="button" data-scenario-continue hidden>Продолжить</button>
                     </div>
                 </section>
             `).join("")}
+            <button class="export-scenario-restart" type="button" data-scenario-restart>Начать сценарий заново</button>
         </div>
     `;
 }
@@ -1542,9 +1545,20 @@ function exportOnePageHtml() {
         .export-interactions { display: grid; gap: 16px; }
         .export-interaction { border: 1px solid #d8ded8; border-radius: 8px; padding: 18px; background: #fbfaf6; }
         .export-interaction__hint { margin: 12px 0 0; color: #4b5b52; }
+        .export-scenario { display: grid; gap: 16px; }
+        .export-scenario__node[hidden] { display: none; }
         .export-scenario-choices { display: grid; gap: 12px; margin-top: 14px; }
-        .export-scenario-choices article { border: 1px solid #d8ded8; border-radius: 8px; padding: 14px; background: #fff; }
-        .export-scenario-choices p { margin: 0 0 8px; }
+        .export-scenario-choice { display: grid; gap: 6px; width: 100%; border: 1px solid #d8ded8; border-left: 4px solid #2f6fbb; border-radius: 8px; padding: 14px; color: #17211b; background: #fff; text-align: left; }
+        .export-scenario-choice small { color: #4b5b52; font-weight: 700; }
+        .export-scenario-choice--good { border-left-color: #17806d; }
+        .export-scenario-choice--partial { border-left-color: #2f6fbb; }
+        .export-scenario-choice--risk { border-left-color: #c95f4f; }
+        .export-scenario-result { display: grid; gap: 10px; margin-top: 14px; border: 1px solid #d8ded8; border-radius: 8px; padding: 14px; background: #fff; }
+        .export-scenario-result[hidden] { display: none; }
+        .export-scenario-result p { margin: 0; color: #4b5b52; font-weight: 700; }
+        .export-scenario-result.is-success { border-color: #17806d; background: #e7f4ef; }
+        .export-scenario-result.is-error { border-color: #c95f4f; background: #fff0ec; }
+        .export-scenario-restart { justify-self: start; background: #2f6fbb; }
         .interaction-preview__task, .sorting-task, .ranking-task { display: grid; gap: 16px; margin-top: 14px; }
         .interaction-preview__instruction { margin: 0; color: #4b5b52; }
         .sorting-task__source, .sorting-task__zones { display: grid; gap: 12px; }
@@ -1664,6 +1678,100 @@ function exportOnePageHtml() {
             }
         });
     });
+
+    function normalizeScenarioRef(value) {
+        return String(value || "").trim().toLowerCase().replaceAll("ё", "е");
+    }
+
+    function getScenarioNodes(scenario) {
+        return [...scenario.querySelectorAll("[data-export-scenario-node]")];
+    }
+
+    function resetScenarioResults(scenario) {
+        scenario.querySelectorAll("[data-scenario-result]").forEach((result) => {
+            result.hidden = true;
+            result.classList.remove("is-success", "is-error");
+            const text = result.querySelector("[data-scenario-result-text]");
+            const nextButton = result.querySelector("[data-scenario-continue]");
+            if (text) text.textContent = "";
+            if (nextButton) {
+                nextButton.hidden = true;
+                nextButton.removeAttribute("data-target-index");
+            }
+        });
+    }
+
+    function showScenarioNode(scenario, targetIndex) {
+        const nodes = getScenarioNodes(scenario);
+        const safeIndex = Number.isInteger(targetIndex) && targetIndex >= 0 && targetIndex < nodes.length ? targetIndex : 0;
+
+        nodes.forEach((node, index) => {
+            node.hidden = index !== safeIndex;
+        });
+        resetScenarioResults(scenario);
+    }
+
+    function resolveScenarioTarget(scenario, nextValue) {
+        const normalized = normalizeScenarioRef(nextValue);
+        const nodes = getScenarioNodes(scenario);
+        if (!normalized) return null;
+        if (["старт", "начало", "сначала", "возврат", "вернуться"].some((word) => normalized.includes(word))) return 0;
+
+        const numberMatch = normalized.match(/(?:узел|node)?\\s*(\\d+)/);
+        if (numberMatch) {
+            const index = Number(numberMatch[1]) - 1;
+            if (index >= 0 && index < nodes.length) return index;
+        }
+
+        const byTitle = nodes.findIndex((node) => {
+            const title = normalizeScenarioRef(node.dataset.nodeTitle);
+            return title && (title === normalized || normalized.includes(title) || title.includes(normalized));
+        });
+
+        return byTitle >= 0 ? byTitle : null;
+    }
+
+    function initExportScenario(scenario) {
+        showScenarioNode(scenario, 0);
+
+        scenario.addEventListener("click", (event) => {
+            const choice = event.target.closest("[data-scenario-choice]");
+            const continueButton = event.target.closest("[data-scenario-continue]");
+            const restartButton = event.target.closest("[data-scenario-restart]");
+
+            if (choice) {
+                const node = choice.closest("[data-export-scenario-node]");
+                const result = node?.querySelector("[data-scenario-result]");
+                const text = result?.querySelector("[data-scenario-result-text]");
+                const nextButton = result?.querySelector("[data-scenario-continue]");
+                const targetIndex = resolveScenarioTarget(scenario, choice.dataset.next);
+                if (!result || !text || !nextButton) return;
+
+                result.hidden = false;
+                result.classList.toggle("is-success", choice.dataset.choiceType === "good");
+                result.classList.toggle("is-error", choice.dataset.choiceType === "risk");
+                text.textContent = choice.dataset.consequence || "Последствие пока не указано.";
+
+                if (targetIndex === null) {
+                    nextButton.hidden = true;
+                    nextButton.removeAttribute("data-target-index");
+                } else {
+                    nextButton.hidden = false;
+                    nextButton.dataset.targetIndex = String(targetIndex);
+                }
+            }
+
+            if (continueButton) {
+                showScenarioNode(scenario, Number(continueButton.dataset.targetIndex));
+            }
+
+            if (restartButton) {
+                showScenarioNode(scenario, 0);
+            }
+        });
+    }
+
+    document.querySelectorAll("[data-export-scenario]").forEach(initExportScenario);
 
     function getCards(task) {
         return [...task.querySelectorAll(".sorting-card")];
