@@ -520,7 +520,7 @@ function renderScenarioChoice(nodeIndex, choiceIndex, choice, choiceCount) {
             </label>
             <label class="quiz-builder__field">
                 <span>Последствие</span>
-                <textarea data-scenario-choice-field="consequence" rows="3" placeholder="Что меняется после выбора? Что видит слушатель?">${escapeHtml(choice.consequence)}</textarea>
+                <textarea data-scenario-choice-field="consequence" rows="3" placeholder="Что произойдет после выбора? Что увидит слушатель и какой вывод должен сделать?">${escapeHtml(choice.consequence)}</textarea>
             </label>
             <div class="scenario-builder__choice-grid">
                 <label class="quiz-builder__field">
@@ -533,7 +533,7 @@ function renderScenarioChoice(nodeIndex, choiceIndex, choice, choiceCount) {
                 </label>
                 <label class="quiz-builder__field">
                     <span>Куда ведет выбор</span>
-                    <input type="text" data-scenario-choice-field="next" value="${escapeHtml(choice.next)}" placeholder="Например: Узел 2, финал успеха, возврат к развилке">
+                    <input type="text" data-scenario-choice-field="next" value="${escapeHtml(choice.next)}" placeholder="Например: Узел 2, 2, название узла или старт. Оставьте пустым, чтобы завершить ветку.">
                 </label>
             </div>
         </article>

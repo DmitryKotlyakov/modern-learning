@@ -55,7 +55,7 @@ export const modules = [
         artifactTitle: "Дерево решений",
         artifactFields: [
             { id: "situation", label: "Ситуация сценария", type: "textarea", placeholder: "В какую практическую ситуацию попадает слушатель?" },
-            { id: "choices", label: "Ключевые выборы", type: "textarea", placeholder: "Опишите 3-5 развилок, варианты ответа и переходы." }
+            { id: "scenarioNodes", label: "Узлы сценария", type: "scenario-builder", placeholder: "Добавьте до 5 узлов с вариантами выбора, последствиями и переходами." }
         ]
     },
     {
