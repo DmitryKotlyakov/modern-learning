@@ -201,10 +201,20 @@ const getGameMetricTemplate = (title = "", value = "5") => ({
 });
 
 const getDefaultGameMetrics = () => [
-    getGameMetricTemplate("Смысл для обучения", "5"),
-    getGameMetricTemplate("Мотивация", "5"),
-    getGameMetricTemplate("Риск декоративности", "2")
+    getGameMetricTemplate("Смысл для обучения", "2"),
+    getGameMetricTemplate("Мотивация", "2"),
+    getGameMetricTemplate("Риск декоративности", "0")
 ];
+
+const clampGameMetricValue = (value, fallback = 0) => {
+    const rawValue = Number(value);
+    return Number.isFinite(rawValue) ? Math.max(-5, Math.min(10, Math.round(rawValue))) : fallback;
+};
+
+const formatGameMetricValue = (value) => {
+    const numberValue = Number(value) || 0;
+    return numberValue > 0 ? `+${numberValue}` : String(numberValue);
+};
 
 const normalizeGameMechanic = (mechanic = {}) => {
     if (typeof mechanic === "string") {
@@ -222,8 +232,7 @@ const normalizeGameMechanic = (mechanic = {}) => {
     const cost = Number.isFinite(rawCost) ? Math.max(0, Math.min(10, Math.round(rawCost))) : 1;
     const metricValues = Array.isArray(mechanic.metricValues)
         ? mechanic.metricValues.slice(0, MAX_GAME_METRICS).map((value) => {
-            const rawValue = Number(value);
-            return Number.isFinite(rawValue) ? String(Math.max(0, Math.min(10, Math.round(rawValue)))) : "5";
+            return String(clampGameMetricValue(value, 0));
         })
         : [];
 
@@ -241,8 +250,7 @@ const getGameMechanics = (values) => Array.isArray(values.gameMechanics)
     : [];
 
 const normalizeGameMetric = (metric = {}) => {
-    const rawValue = Number(metric.value);
-    const value = Number.isFinite(rawValue) ? Math.max(0, Math.min(10, Math.round(rawValue))) : 5;
+    const value = clampGameMetricValue(metric.value, 0);
 
     return {
         id: metric.id || `metric-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -863,13 +871,13 @@ function renderGameMechanicRows(container, mechanics, metrics = []) {
             </label>
             ${metrics.length ? `
                 <div class="game-builder__mechanic-metrics">
-                    <h5>Значения показателей</h5>
+                    <h5>Влияние на показатели</h5>
                     ${metrics.map((metric, metricIndex) => {
-                        const value = mechanic.metricValues?.[metricIndex] ?? metric.value ?? "5";
+                        const value = mechanic.metricValues?.[metricIndex] ?? "0";
                         return `
                             <label class="quiz-builder__field game-builder__mechanic-metric" data-game-mechanic-metric-index="${metricIndex}">
-                                <span><span data-game-mechanic-metric-label>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>: <strong data-game-mechanic-metric-value-label>${escapeHtml(value)} / 10</strong></span>
-                                <input type="range" min="0" max="10" step="1" data-game-mechanic-metric-value="${metricIndex}" value="${escapeHtml(value)}">
+                                <span><span data-game-mechanic-metric-label>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>: <strong data-game-mechanic-metric-value-label>${escapeHtml(formatGameMetricValue(value))}</strong></span>
+                                <input type="range" min="-5" max="10" step="1" data-game-mechanic-metric-value="${metricIndex}" value="${escapeHtml(value)}">
                             </label>
                         `;
                     }).join("")}
@@ -897,19 +905,19 @@ function renderGameMetricRows(container, metrics) {
                     <input type="text" data-game-metric-field="title" value="${escapeHtml(metric.title)}" placeholder="Например: смысл для обучения, мотивация, риск декоративности">
                 </label>
                 <label class="quiz-builder__field">
-                    <span>Значение: <strong data-game-metric-value-label>${escapeHtml(metric.value)} / 10</strong></span>
-                    <input type="range" min="0" max="10" step="1" data-game-metric-field="value" value="${escapeHtml(metric.value)}">
+                    <span>Базовое значение: <strong data-game-metric-value-label>${escapeHtml(formatGameMetricValue(metric.value))}</strong></span>
+                    <input type="range" min="-5" max="10" step="1" data-game-metric-field="value" value="${escapeHtml(metric.value)}">
                 </label>
             </div>
             <label class="quiz-builder__field">
-                <span>Что означает это значение</span>
-                <textarea data-game-metric-field="note" rows="2" placeholder="Например: 8 означает, что механика прямо помогает выполнить учебное действие, а не просто украшает урок.">${escapeHtml(metric.note)}</textarea>
+                <span>Что означает этот показатель</span>
+                <textarea data-game-metric-field="note" rows="2" placeholder="Например: положительное значение усиливает учебное действие, отрицательное показывает риск или лишнюю сложность.">${escapeHtml(metric.note)}</textarea>
             </label>
         </article>
     `).join("") : `
         <div class="quiz-builder__empty">
             <h3>Пока нет показателей</h3>
-            <p>Добавьте 2-3 показателя и задайте значения от 0 до 10, чтобы проверить баланс игровых элементов.</p>
+            <p>Добавьте 2-3 показателя. Затем в каждой механике задайте, как она меняет эти показатели от -5 до +10.</p>
         </div>
     `;
 }
@@ -938,21 +946,22 @@ function collectGameMetrics(form) {
         }));
 }
 
-function getGameMetricAverage(mechanics, metricIndex, fallbackValue = "0") {
-    const values = mechanics
-        .map((mechanic) => Number(mechanic.metricValues?.[metricIndex]))
-        .filter((value) => Number.isFinite(value));
+function getGameMetricTotal(mechanics, metricIndex, baseValue = "0") {
+    return mechanics.reduce((sum, mechanic) => {
+        const value = Number(mechanic.metricValues?.[metricIndex]);
+        return sum + (Number.isFinite(value) ? value : 0);
+    }, Number(baseValue) || 0);
+}
 
-    if (!values.length) return Number(fallbackValue) || 0;
-
-    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+function getGameMetricBarWidth(value) {
+    return `${Math.max(0, Math.min(100, (Number(value) || 0) * 10))}%`;
 }
 
 function updateGameMetricLabels(form) {
     form.querySelectorAll(".game-builder__metric[data-game-metric-index]").forEach((metricElement) => {
         const value = metricElement.querySelector("[data-game-metric-field='value']")?.value ?? "0";
         const label = metricElement.querySelector("[data-game-metric-value-label]");
-        if (label) label.textContent = `${value} / 10`;
+        if (label) label.textContent = formatGameMetricValue(value);
     });
 
     const metrics = collectGameMetrics(form);
@@ -963,7 +972,7 @@ function updateGameMetricLabels(form) {
             const valueLabel = metricElement.querySelector("[data-game-mechanic-metric-value-label]");
             const titleLabel = metricElement.querySelector("[data-game-mechanic-metric-label]");
             if (titleLabel) titleLabel.textContent = metrics[metricIndex]?.title || `Показатель ${metricIndex + 1}`;
-            if (valueLabel) valueLabel.textContent = `${input?.value ?? "0"} / 10`;
+            if (valueLabel) valueLabel.textContent = formatGameMetricValue(input?.value ?? "0");
         });
     });
 }
@@ -978,9 +987,9 @@ function updateGameMetricsPreview(form, metrics, mechanics) {
         <div class="game-meter">
             <div class="game-meter__label">
                 <span>${escapeHtml(metric.title || "Показатель")}</span>
-                <strong>${getGameMetricAverage(filledMechanics, metrics.indexOf(metric), metric.value)} / 10</strong>
+                <strong>${formatGameMetricValue(getGameMetricTotal(filledMechanics, metrics.indexOf(metric), metric.value))}</strong>
             </div>
-            <div class="progress-meter"><div class="progress-meter__bar ${/риск/i.test(metric.title) ? "game-meter__bar--risk" : "progress-meter__bar--saved"}" style="width: ${Math.min(100, getGameMetricAverage(filledMechanics, metrics.indexOf(metric), metric.value) * 10)}%"></div></div>
+            <div class="progress-meter"><div class="progress-meter__bar ${/риск/i.test(metric.title) ? "game-meter__bar--risk" : "progress-meter__bar--saved"}" style="width: ${getGameMetricBarWidth(getGameMetricTotal(filledMechanics, metrics.indexOf(metric), metric.value))}"></div></div>
         </div>
     `).join("") : "<p class=\"game-builder__metric-empty\">Добавьте показатели, чтобы видеть баланс механики.</p>";
 }
@@ -1859,7 +1868,7 @@ function renderGameMechanicsSummary(values) {
                                 <ul class="bullets">
                                     ${filledMetrics.map((metric) => {
                                         const metricIndex = metrics.indexOf(metric);
-                                        return `<li>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}: ${escapeHtml(mechanic.metricValues?.[metricIndex] ?? metric.value ?? "5")} / 10</li>`;
+                                        return `<li>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}: ${escapeHtml(formatGameMetricValue(mechanic.metricValues?.[metricIndex] ?? "0"))}</li>`;
                                     }).join("")}
                                 </ul>
                             ` : ""}
@@ -1868,9 +1877,9 @@ function renderGameMechanicsSummary(values) {
                 </ul>
             ` : ""}
             ${filledMetrics.length ? `
-                <p><b>Средние значения показателей:</b></p>
+                <p><b>Итоговые значения показателей:</b></p>
                 <ul class="bullets">
-                    ${filledMetrics.map((metric) => `<li><b>${escapeHtml(metric.title || "Показатель")}</b> · ${getGameMetricAverage(filledMechanics, metrics.indexOf(metric), metric.value)} / 10${metric.note ? `: ${escapeHtml(metric.note)}` : ""}</li>`).join("")}
+                    ${filledMetrics.map((metric) => `<li><b>${escapeHtml(metric.title || "Показатель")}</b> · ${formatGameMetricValue(getGameMetricTotal(filledMechanics, metrics.indexOf(metric), metric.value))}${metric.note ? `: ${escapeHtml(metric.note)}` : ""}</li>`).join("")}
                 </ul>
             ` : ""}
         </div>
