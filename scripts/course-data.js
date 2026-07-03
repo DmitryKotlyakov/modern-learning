@@ -51,12 +51,11 @@ export const modules = [
         slug: "module-4/",
         mechanic: "Branching scenario",
         result: "Дерево решений и рабочий прототип сценария.",
-        practice: "Спроектировать развилки, последствия выбора и финальные состояния.",
+        practice: "Спроектировать развилки, последствия выбора и переходы между ветками.",
         artifactTitle: "Дерево решений",
         artifactFields: [
             { id: "situation", label: "Ситуация сценария", type: "textarea", placeholder: "В какую практическую ситуацию попадает слушатель?" },
-            { id: "choices", label: "Ключевые выборы", type: "textarea", placeholder: "Опишите 3-5 развилок и варианты ответа." },
-            { id: "consequences", label: "Последствия и финалы", type: "textarea", placeholder: "Что происходит после выбора? Какие финальные состояния возможны?" }
+            { id: "choices", label: "Ключевые выборы", type: "textarea", placeholder: "Опишите 3-5 развилок, варианты ответа и переходы." }
         ]
     },
     {

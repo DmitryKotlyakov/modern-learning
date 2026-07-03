@@ -209,8 +209,7 @@ const getFilledCount = (module, values) => {
     if (module.id === SCENARIO_BUILDER_MODULE_ID) {
         return [
             String(values.situation ?? "").trim(),
-            getScenarioNodeCount(values) > 0 ? "scenarioNodes" : "",
-            String(values.finalStates ?? "").trim()
+            getScenarioNodeCount(values) > 0 ? "scenarioNodes" : ""
         ].filter(Boolean).length;
     }
 
@@ -227,7 +226,10 @@ const collectProject = () => modules.map((module) => {
         values = { ...storedValues, exercises: getInteractionExercises(storedValues) };
     }
     if (module.id === SCENARIO_BUILDER_MODULE_ID) {
-        values = { ...storedValues, scenarioNodes: getScenarioNodes(storedValues) };
+        values = {
+            situation: storedValues.situation ?? "",
+            scenarioNodes: getScenarioNodes(storedValues)
+        };
     }
     const filled = getFilledCount(module, values);
 
@@ -349,16 +351,15 @@ function renderScenarioBuilderForm(module, content) {
             <span class="tag">До ${MAX_SCENARIO_NODES} узлов</span>
         </div>
         <h2>${escapeHtml(module.artifactTitle)}</h2>
-        <p>Соберите черновик branching scenario: опишите стартовую ситуацию, ключевые узлы, варианты выбора, последствия и финальные состояния.</p>
+        <p>Соберите черновик branching scenario: опишите стартовую ситуацию, ключевые узлы, варианты выбора, последствия и переходы между ветками.</p>
         <div class="artifact-guide">
             <h3>Как пользоваться конструктором</h3>
             <ol>
                 <li><strong>Начните с ситуации.</strong> Опишите, кто действует, в каком контексте и какой навык тренирует сценарий. Это будет общий замысел кейса.</li>
                 <li><strong>Добавьте первый узел.</strong> Узел — это один экран сценария: короткая сцена, вопрос к слушателю и варианты действий. Первый узел считается стартом в экспортируемом сайте.</li>
                 <li><strong>Заполните варианты выбора.</strong> Для каждого выбора напишите текст кнопки, последствие и тип исхода: удачный, частично удачный или рискованный. Последствие должно показывать, что изменилось после решения, а не просто говорить «верно» или «неверно».</li>
-                <li><strong>Укажите переход.</strong> В поле «Куда ведет выбор» можно написать <code>Узел 2</code>, <code>2</code>, название другого узла или <code>старт</code>. В экспортируемом сайте такой выбор покажет последствие и даст перейти дальше. Если поле оставить пустым, выбор станет финальной точкой.</li>
-                <li><strong>Опишите финальные состояния.</strong> Это список итогов, к которым приходят ветки сценария, а не новые экраны конструктора. Для каждого финала укажите: название, условие попадания, что видит слушатель и какой учебный вывод он должен сделать. Например: «Успех — клиент получил срок и следующий шаг; вывод: сначала снизить неопределенность», «Частичный успех — данные собраны, но клиенту не назвали срок», «Ошибка — специалист оправдался и не предложил действия». Если выбор должен завершать сценарий, оставьте поле перехода пустым и опишите этот итог здесь.</li>
-                <li><strong>Проверьте дерево.</strong> Пройдите все ветки глазами: у каждого выбора должно быть понятное последствие, а у каждого перехода — существующий узел или осознанный финал.</li>
+                <li><strong>Укажите переход.</strong> В поле «Куда ведет выбор» можно написать <code>Узел 2</code>, <code>2</code>, название другого узла или <code>старт</code>. В экспортируемом сайте такой выбор покажет последствие и даст перейти дальше. Если поле оставить пустым, выбор станет финальной точкой: слушатель увидит последствие и сценарий на этом маршруте остановится.</li>
+                <li><strong>Проверьте дерево.</strong> Пройдите все ветки глазами: у каждого выбора должно быть понятное последствие, а у каждого перехода — существующий узел или осознанное завершение маршрута.</li>
             </ol>
         </div>
         <form class="artifact-form scenario-builder" data-artifact-form data-scenario-builder-form>
@@ -376,11 +377,6 @@ function renderScenarioBuilderForm(module, content) {
             </div>
 
             <div class="scenario-builder__list" data-scenario-list></div>
-
-            <label class="artifact-field" for="artifact-finalStates">
-                <span>Финальные состояния</span>
-                <textarea id="artifact-finalStates" name="finalStates" rows="4" placeholder="Формат: название финала — условие попадания — что видит слушатель — учебный вывод. Например: Успех — выбран ответ с конкретным сроком — клиент получает план действий — важно снижать неопределенность.">${escapeHtml(saved.finalStates ?? saved.consequences ?? "")}</textarea>
-            </label>
 
             <div class="artifact-actions">
                 <button class="button button--primary" type="submit">Сохранить в проект</button>
@@ -402,8 +398,7 @@ function renderScenarioBuilderForm(module, content) {
         scenarioNodes = collectScenarioNodes(artifactForm);
         setArtifact(moduleId, {
             situation: artifactForm.elements.situation.value,
-            scenarioNodes,
-            finalStates: artifactForm.elements.finalStates.value
+            scenarioNodes
         });
         count.textContent = `${scenarioNodes.length} из ${MAX_SCENARIO_NODES}`;
         status.textContent = message;
@@ -1404,7 +1399,6 @@ function renderProjectFields(module, values) {
 
     if (module.id === SCENARIO_BUILDER_MODULE_ID) {
         const situation = String(values.situation ?? "").trim();
-        const finalStates = String(values.finalStates ?? values.consequences ?? "").trim();
         return `
             <div class="project-field">
                 <dt>Ситуация сценария</dt>
@@ -1413,10 +1407,6 @@ function renderProjectFields(module, values) {
             <div class="project-field">
                 <dt>Дерево решений</dt>
                 <dd>${renderScenarioSummary(values)}</dd>
-            </div>
-            <div class="project-field">
-                <dt>Финальные состояния</dt>
-                <dd>${finalStates ? escapeHtml(finalStates).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
             </div>
         `;
     }
@@ -1451,7 +1441,6 @@ function renderExportFields(module, values) {
         return `
             <section><h3>Ситуация сценария</h3><p>${escapeHtml(String(values.situation ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
             <section><h3>Дерево решений</h3>${renderExportScenario(values)}</section>
-            <section><h3>Финальные состояния</h3><p>${escapeHtml(String(values.finalStates ?? values.consequences ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
         `;
     }
 
