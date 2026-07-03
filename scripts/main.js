@@ -4,6 +4,7 @@ import { initProjectWorkspace } from "./project-work.js";
 import { initQuizExamples } from "./quiz-examples.js";
 import { initSiteProgress } from "./site-progress.js";
 import { initSortingTasks } from "./sorting-task.js";
+import { initBranchingScenarios } from "./branching-scenario.js";
 
 initNavigation();
 renderModuleGrid();
@@ -13,3 +14,4 @@ renderChecklist();
 initProjectWorkspace();
 initQuizExamples();
 initSortingTasks();
+initBranchingScenarios();
