@@ -729,7 +729,8 @@
 
 .quiz-builder__add,
 .quiz-builder__list,
-.quiz-builder__options {
+.quiz-builder__options,
+.scenario-builder__list {
     display: grid;
     gap: 0.75rem;
 }
@@ -840,6 +841,21 @@
 .quiz-builder__option {
     grid-template-columns: 1.2rem minmax(0, 1fr) auto;
     align-items: center;
+}
+
+.scenario-builder__choice {
+    display: grid;
+    gap: 0.85rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-xs);
+    padding: 1rem;
+    background: #fff;
+}
+
+.scenario-builder__choice-grid {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.75fr) minmax(0, 1.25fr);
+    gap: 0.85rem;
 }
 
 .quiz-builder__option input[type="radio"],
@@ -986,7 +1002,8 @@
     .quiz-builder__add,
     .interaction-builder__add,
     .quiz-builder__option,
-    .quiz-builder__answer {
+    .quiz-builder__answer,
+    .scenario-builder__choice-grid {
         grid-template-columns: 1fr;
     }
 

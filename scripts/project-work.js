@@ -7,8 +7,10 @@ const STORAGE_PREFIX = "learning-mechanics:artifact:";
 const ARTIFACT_DONE_PREFIX = "learning-mechanics:artifact-complete:";
 const QUIZ_BANK_MODULE_ID = 2;
 const INTERACTION_BUILDER_MODULE_ID = 3;
+const SCENARIO_BUILDER_MODULE_ID = 4;
 const MAX_QUIZ_QUESTIONS = 10;
 const MAX_INTERACTION_EXERCISES = 5;
+const MAX_SCENARIO_NODES = 5;
 
 const quizTypes = {
     single: "Один выбор",
@@ -20,6 +22,12 @@ const quizTypes = {
 const interactionTypes = {
     sorting: "Сортировка",
     ranking: "Ранжирование"
+};
+
+const scenarioChoiceTypes = {
+    good: "Удачный выбор",
+    partial: "Частично удачный",
+    risk: "Рискованный выбор"
 };
 
 const escapeHtml = (value) => String(value ?? "")
@@ -129,11 +137,59 @@ const getInteractionExercises = (values) => Array.isArray(values.exercises)
     ? values.exercises.slice(0, MAX_INTERACTION_EXERCISES).map(normalizeInteractionExercise)
     : [];
 
+const getScenarioChoiceTemplate = () => ({
+    text: "",
+    consequence: "",
+    next: "",
+    type: "partial"
+});
+
+const getScenarioNodeTemplate = () => ({
+    id: `node-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    title: "",
+    scene: "",
+    question: "",
+    choices: [
+        getScenarioChoiceTemplate(),
+        getScenarioChoiceTemplate()
+    ]
+});
+
+const normalizeScenarioChoice = (choice = {}) => ({
+    text: String(choice.text ?? ""),
+    consequence: String(choice.consequence ?? ""),
+    next: String(choice.next ?? ""),
+    type: Object.hasOwn(scenarioChoiceTypes, choice.type) ? choice.type : "partial"
+});
+
+const normalizeScenarioNode = (node = {}) => {
+    const choices = Array.isArray(node.choices)
+        ? node.choices.slice(0, 4).map(normalizeScenarioChoice)
+        : [];
+
+    while (choices.length < 2) choices.push(getScenarioChoiceTemplate());
+
+    return {
+        id: node.id || `node-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title: String(node.title ?? ""),
+        scene: String(node.scene ?? ""),
+        question: String(node.question ?? ""),
+        choices
+    };
+};
+
+const getScenarioNodes = (values) => Array.isArray(values.scenarioNodes)
+    ? values.scenarioNodes.slice(0, MAX_SCENARIO_NODES).map(normalizeScenarioNode)
+    : [];
+
 const getQuestionCount = (values) => getQuizQuestions(values)
     .filter((question) => String(question.prompt ?? "").trim()).length;
 
 const getInteractionExerciseCount = (values) => getInteractionExercises(values)
     .filter((exercise) => String(exercise.title || exercise.instruction || exercise.items).trim()).length;
+
+const getScenarioNodeCount = (values) => getScenarioNodes(values)
+    .filter((node) => String(node.title || node.scene || node.question).trim()).length;
 
 const getFilledCount = (module, values) => {
     if (module.id === QUIZ_BANK_MODULE_ID) {
@@ -150,6 +206,14 @@ const getFilledCount = (module, values) => {
         ].filter(Boolean).length;
     }
 
+    if (module.id === SCENARIO_BUILDER_MODULE_ID) {
+        return [
+            String(values.situation ?? "").trim(),
+            getScenarioNodeCount(values) > 0 ? "scenarioNodes" : "",
+            String(values.finalStates ?? "").trim()
+        ].filter(Boolean).length;
+    }
+
     return module.artifactFields.filter((field) => String(values[field.id] ?? "").trim()).length;
 };
 
@@ -161,6 +225,9 @@ const collectProject = () => modules.map((module) => {
     }
     if (module.id === INTERACTION_BUILDER_MODULE_ID) {
         values = { ...storedValues, exercises: getInteractionExercises(storedValues) };
+    }
+    if (module.id === SCENARIO_BUILDER_MODULE_ID) {
+        values = { ...storedValues, scenarioNodes: getScenarioNodes(storedValues) };
     }
     const filled = getFilledCount(module, values);
 
@@ -203,6 +270,11 @@ function renderArtifactForm() {
 
     if (moduleId === INTERACTION_BUILDER_MODULE_ID) {
         renderInteractionBuilderForm(module, content);
+        return;
+    }
+
+    if (moduleId === SCENARIO_BUILDER_MODULE_ID) {
+        renderScenarioBuilderForm(module, content);
         return;
     }
 
@@ -262,6 +334,223 @@ function renderArtifactForm() {
         saveArtifactFromForm(moduleId, artifactForm);
         status.textContent = "Черновик сохранен";
     });
+}
+
+function renderScenarioBuilderForm(module, content) {
+    const moduleId = module.id;
+    const saved = getArtifact(moduleId);
+    let scenarioNodes = getScenarioNodes(saved);
+
+    const form = document.createElement("article");
+    form.className = "lesson-card artifact-card";
+    form.innerHTML = `
+        <div class="lesson-card__meta">
+            <span class="tag">Сквозной проект</span>
+            <span class="tag">До ${MAX_SCENARIO_NODES} узлов</span>
+        </div>
+        <h2>${escapeHtml(module.artifactTitle)}</h2>
+        <p>Соберите черновик branching scenario: опишите стартовую ситуацию, ключевые узлы, варианты выбора, последствия и финальные состояния.</p>
+        <form class="artifact-form scenario-builder" data-artifact-form data-scenario-builder-form>
+            <label class="artifact-field" for="artifact-situation">
+                <span>Ситуация сценария</span>
+                <textarea id="artifact-situation" name="situation" rows="4" placeholder="Кто действует, в каком контексте и какую задачу должен решить?">${escapeHtml(saved.situation ?? "")}</textarea>
+            </label>
+
+            <div class="quiz-builder__panel">
+                <div>
+                    <h3>Узлы сценария</h3>
+                    <p data-scenario-count>${scenarioNodes.length} из ${MAX_SCENARIO_NODES}</p>
+                </div>
+                <button class="button button--secondary" type="button" data-add-scenario-node>Добавить узел</button>
+            </div>
+
+            <div class="scenario-builder__list" data-scenario-list></div>
+
+            <label class="artifact-field" for="artifact-finalStates">
+                <span>Финальные состояния</span>
+                <textarea id="artifact-finalStates" name="finalStates" rows="4" placeholder="Например: успешное решение, частичный успех, ошибка с возвратом к развилке.">${escapeHtml(saved.finalStates ?? saved.consequences ?? "")}</textarea>
+            </label>
+
+            <div class="artifact-actions">
+                <button class="button button--primary" type="submit">Сохранить в проект</button>
+                <a class="button button--secondary" href="../project/">Открыть проект</a>
+                <span class="artifact-status" data-artifact-status aria-live="polite"></span>
+            </div>
+        </form>
+    `;
+
+    const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
+    content.insertBefore(form, checklist || null);
+
+    const artifactForm = form.querySelector("[data-artifact-form]");
+    const list = form.querySelector("[data-scenario-list]");
+    const count = form.querySelector("[data-scenario-count]");
+    const status = form.querySelector("[data-artifact-status]");
+
+    const sync = (message = "Черновик сохранен") => {
+        scenarioNodes = collectScenarioNodes(artifactForm);
+        setArtifact(moduleId, {
+            situation: artifactForm.elements.situation.value,
+            scenarioNodes,
+            finalStates: artifactForm.elements.finalStates.value
+        });
+        count.textContent = `${scenarioNodes.length} из ${MAX_SCENARIO_NODES}`;
+        status.textContent = message;
+    };
+
+    const rerender = (message) => {
+        renderScenarioNodes(list, scenarioNodes);
+        count.textContent = `${scenarioNodes.length} из ${MAX_SCENARIO_NODES}`;
+        status.textContent = message;
+    };
+
+    rerender("");
+
+    artifactForm.addEventListener("click", (event) => {
+        const addNodeButton = event.target.closest("[data-add-scenario-node]");
+        const removeNodeButton = event.target.closest("[data-remove-scenario-node]");
+        const addChoiceButton = event.target.closest("[data-add-scenario-choice]");
+        const removeChoiceButton = event.target.closest("[data-remove-scenario-choice]");
+
+        if (addNodeButton) {
+            scenarioNodes = collectScenarioNodes(artifactForm);
+            if (scenarioNodes.length >= MAX_SCENARIO_NODES) {
+                status.textContent = `Максимум ${MAX_SCENARIO_NODES} узлов`;
+                return;
+            }
+            scenarioNodes.push(getScenarioNodeTemplate());
+            rerender("Узел добавлен");
+            sync("Черновик сохранен");
+        }
+
+        if (removeNodeButton) {
+            scenarioNodes = collectScenarioNodes(artifactForm)
+                .filter((_, index) => index !== Number(removeNodeButton.dataset.removeScenarioNode));
+            rerender("Узел удален");
+            sync("Черновик сохранен");
+        }
+
+        if (addChoiceButton) {
+            scenarioNodes = collectScenarioNodes(artifactForm);
+            const node = scenarioNodes[Number(addChoiceButton.dataset.addScenarioChoice)];
+            if (node && node.choices.length < 4) node.choices.push(getScenarioChoiceTemplate());
+            rerender("Выбор добавлен");
+            sync("Черновик сохранен");
+        }
+
+        if (removeChoiceButton) {
+            scenarioNodes = collectScenarioNodes(artifactForm);
+            const node = scenarioNodes[Number(removeChoiceButton.dataset.nodeIndex)];
+            if (node && node.choices.length > 2) {
+                node.choices.splice(Number(removeChoiceButton.dataset.removeScenarioChoice), 1);
+            }
+            rerender("Выбор удален");
+            sync("Черновик сохранен");
+        }
+    });
+
+    artifactForm.addEventListener("input", () => sync());
+    artifactForm.addEventListener("change", () => sync());
+    artifactForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sync("Сохранено");
+        localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`, "true");
+        renderSiteProgress();
+        renderModuleMenu();
+        window.setTimeout(() => {
+            status.textContent = "";
+        }, 1800);
+    });
+}
+
+function renderScenarioNodes(container, nodes) {
+    container.innerHTML = nodes.length ? nodes.map((node, nodeIndex) => `
+        <article class="quiz-builder__question scenario-builder__node" data-scenario-node-index="${nodeIndex}">
+            <div class="quiz-builder__question-top">
+                <div>
+                    <p class="eyebrow">Узел ${nodeIndex + 1}</p>
+                    <h3>${escapeHtml(node.title || "Новая развилка")}</h3>
+                </div>
+                <button class="button button--secondary" type="button" data-remove-scenario-node="${nodeIndex}">Удалить</button>
+            </div>
+            <label class="quiz-builder__field">
+                <span>Название узла</span>
+                <input type="text" data-scenario-field="title" value="${escapeHtml(node.title)}" placeholder="Например: Клиент раздражен после задержки">
+            </label>
+            <label class="quiz-builder__field">
+                <span>Сцена</span>
+                <textarea data-scenario-field="scene" rows="3" placeholder="Что видит слушатель? Какие вводные у ситуации?">${escapeHtml(node.scene)}</textarea>
+            </label>
+            <label class="quiz-builder__field">
+                <span>Вопрос к слушателю</span>
+                <textarea data-scenario-field="question" rows="2" placeholder="Например: Что должен сделать специалист первым шагом?">${escapeHtml(node.question)}</textarea>
+            </label>
+            <div class="quiz-builder__options">
+                <div class="quiz-builder__subhead">
+                    <h4>Варианты выбора</h4>
+                    <button class="button button--secondary" type="button" data-add-scenario-choice="${nodeIndex}" ${node.choices.length >= 4 ? "disabled" : ""}>Добавить выбор</button>
+                </div>
+                ${node.choices.map((choice, choiceIndex) => renderScenarioChoice(nodeIndex, choiceIndex, choice, node.choices.length)).join("")}
+            </div>
+        </article>
+    `).join("") : `
+        <div class="quiz-builder__empty">
+            <h3>Пока нет узлов сценария</h3>
+            <p>Добавьте первую развилку: короткую сцену, вопрос к слушателю, 2-4 выбора и последствия каждого выбора.</p>
+        </div>
+    `;
+}
+
+function renderScenarioChoice(nodeIndex, choiceIndex, choice, choiceCount) {
+    return `
+        <article class="scenario-builder__choice" data-scenario-choice-index="${choiceIndex}">
+            <div class="quiz-builder__subhead">
+                <h4>Выбор ${choiceIndex + 1}</h4>
+                <button class="button button--secondary" type="button" data-node-index="${nodeIndex}" data-remove-scenario-choice="${choiceIndex}" ${choiceCount <= 2 ? "disabled" : ""}>Убрать</button>
+            </div>
+            <label class="quiz-builder__field">
+                <span>Текст выбора</span>
+                <textarea data-scenario-choice-field="text" rows="2" placeholder="Что нажимает или выбирает слушатель?">${escapeHtml(choice.text)}</textarea>
+            </label>
+            <label class="quiz-builder__field">
+                <span>Последствие</span>
+                <textarea data-scenario-choice-field="consequence" rows="3" placeholder="Что меняется после выбора? Что видит слушатель?">${escapeHtml(choice.consequence)}</textarea>
+            </label>
+            <div class="scenario-builder__choice-grid">
+                <label class="quiz-builder__field">
+                    <span>Тип исхода</span>
+                    <select data-scenario-choice-field="type">
+                        ${Object.entries(scenarioChoiceTypes).map(([type, label]) => `
+                            <option value="${type}" ${choice.type === type ? "selected" : ""}>${escapeHtml(label)}</option>
+                        `).join("")}
+                    </select>
+                </label>
+                <label class="quiz-builder__field">
+                    <span>Куда ведет выбор</span>
+                    <input type="text" data-scenario-choice-field="next" value="${escapeHtml(choice.next)}" placeholder="Например: Узел 2, финал успеха, возврат к развилке">
+                </label>
+            </div>
+        </article>
+    `;
+}
+
+function collectScenarioNodes(form) {
+    return [...form.querySelectorAll(".scenario-builder__node[data-scenario-node-index]")]
+        .slice(0, MAX_SCENARIO_NODES)
+        .map((nodeElement) => normalizeScenarioNode({
+            id: `node-${nodeElement.dataset.scenarioNodeIndex}`,
+            title: nodeElement.querySelector("[data-scenario-field='title']")?.value ?? "",
+            scene: nodeElement.querySelector("[data-scenario-field='scene']")?.value ?? "",
+            question: nodeElement.querySelector("[data-scenario-field='question']")?.value ?? "",
+            choices: [...nodeElement.querySelectorAll("[data-scenario-choice-index]")]
+                .slice(0, 4)
+                .map((choiceElement) => normalizeScenarioChoice({
+                    text: choiceElement.querySelector("[data-scenario-choice-field='text']")?.value ?? "",
+                    consequence: choiceElement.querySelector("[data-scenario-choice-field='consequence']")?.value ?? "",
+                    type: choiceElement.querySelector("[data-scenario-choice-field='type']")?.value ?? "partial",
+                    next: choiceElement.querySelector("[data-scenario-choice-field='next']")?.value ?? ""
+                }))
+        }));
 }
 
 function renderQuizBankForm(module, content) {
@@ -1018,6 +1307,58 @@ function renderExportInteractionExercises(values) {
     `;
 }
 
+function renderScenarioSummary(values) {
+    const nodes = getScenarioNodes(values);
+
+    if (!nodes.length) return "<span>Пока не добавлены</span>";
+
+    return `
+        <ol class="quiz-bank-summary">
+            ${nodes.map((node, index) => `
+                <li>
+                    <strong>${index + 1}. ${escapeHtml(node.title || "Узел без названия")}</strong>
+                    <p>${escapeHtml(node.scene || "Сцена пока не описана")}</p>
+                    <p><b>Вопрос:</b> ${escapeHtml(node.question || "Пока не указан")}</p>
+                    <ul class="bullets">
+                        ${node.choices.map((choice) => `
+                            <li><b>${escapeHtml(scenarioChoiceTypes[choice.type])}:</b> ${escapeHtml(choice.text || "Выбор не заполнен")} → ${escapeHtml(choice.consequence || "последствие не указано")}${choice.next ? `; переход: ${escapeHtml(choice.next)}` : ""}</li>
+                        `).join("")}
+                    </ul>
+                </li>
+            `).join("")}
+        </ol>
+    `;
+}
+
+function renderExportScenario(values) {
+    const nodes = getScenarioNodes(values);
+
+    if (!nodes.length) return "<p>Пока не добавлены</p>";
+
+    return `
+        <div class="export-interactions">
+            ${nodes.map((node, index) => `
+                <section class="export-interaction">
+                    <p class="export-quiz__type">Узел ${index + 1}</p>
+                    <h3>${escapeHtml(node.title || "Узел без названия")}</h3>
+                    <p>${escapeHtml(node.scene || "Сцена пока не описана").replaceAll("\n", "<br>")}</p>
+                    <p><b>Вопрос:</b> ${escapeHtml(node.question || "Пока не указан").replaceAll("\n", "<br>")}</p>
+                    <div class="export-scenario-choices">
+                        ${node.choices.map((choice) => `
+                            <article>
+                                <p><b>${escapeHtml(scenarioChoiceTypes[choice.type])}</b></p>
+                                <p>${escapeHtml(choice.text || "Выбор не заполнен").replaceAll("\n", "<br>")}</p>
+                                <p><b>Последствие:</b> ${escapeHtml(choice.consequence || "Пока не указано").replaceAll("\n", "<br>")}</p>
+                                ${choice.next ? `<p><b>Переход:</b> ${escapeHtml(choice.next)}</p>` : ""}
+                            </article>
+                        `).join("")}
+                    </div>
+                </section>
+            `).join("")}
+        </div>
+    `;
+}
+
 function renderProjectFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         const quizGoal = String(values.quizGoal ?? "").trim();
@@ -1047,6 +1388,25 @@ function renderProjectFields(module, values) {
         `;
     }
 
+    if (module.id === SCENARIO_BUILDER_MODULE_ID) {
+        const situation = String(values.situation ?? "").trim();
+        const finalStates = String(values.finalStates ?? values.consequences ?? "").trim();
+        return `
+            <div class="project-field">
+                <dt>Ситуация сценария</dt>
+                <dd>${situation ? escapeHtml(situation).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
+            </div>
+            <div class="project-field">
+                <dt>Дерево решений</dt>
+                <dd>${renderScenarioSummary(values)}</dd>
+            </div>
+            <div class="project-field">
+                <dt>Финальные состояния</dt>
+                <dd>${finalStates ? escapeHtml(finalStates).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
+            </div>
+        `;
+    }
+
     return module.artifactFields.map((field) => {
         const value = String(values[field.id] ?? "").trim();
         return `
@@ -1070,6 +1430,14 @@ function renderExportFields(module, values) {
         return `
             <section><h3>Что тренирует упражнение</h3><p>${escapeHtml(String(values.exerciseGoal ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
             <section><h3>Упражнения на сортировку и ранжирование</h3>${renderExportInteractionExercises(values)}</section>
+        `;
+    }
+
+    if (module.id === SCENARIO_BUILDER_MODULE_ID) {
+        return `
+            <section><h3>Ситуация сценария</h3><p>${escapeHtml(String(values.situation ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
+            <section><h3>Дерево решений</h3>${renderExportScenario(values)}</section>
+            <section><h3>Финальные состояния</h3><p>${escapeHtml(String(values.finalStates ?? values.consequences ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
         `;
     }
 
@@ -1174,6 +1542,9 @@ function exportOnePageHtml() {
         .export-interactions { display: grid; gap: 16px; }
         .export-interaction { border: 1px solid #d8ded8; border-radius: 8px; padding: 18px; background: #fbfaf6; }
         .export-interaction__hint { margin: 12px 0 0; color: #4b5b52; }
+        .export-scenario-choices { display: grid; gap: 12px; margin-top: 14px; }
+        .export-scenario-choices article { border: 1px solid #d8ded8; border-radius: 8px; padding: 14px; background: #fff; }
+        .export-scenario-choices p { margin: 0 0 8px; }
         .interaction-preview__task, .sorting-task, .ranking-task { display: grid; gap: 16px; margin-top: 14px; }
         .interaction-preview__instruction { margin: 0; color: #4b5b52; }
         .sorting-task__source, .sorting-task__zones { display: grid; gap: 12px; }
