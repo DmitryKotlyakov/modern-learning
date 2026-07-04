@@ -942,6 +942,17 @@
     gap: 0.75rem;
 }
 
+.longread-builder__add {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.longread-builder__list {
+    display: grid;
+    gap: 0.75rem;
+}
+
 .interaction-builder__list {
     display: grid;
     gap: 0.75rem;
@@ -1211,6 +1222,7 @@
     .quiz-builder__panel,
     .quiz-builder__add,
     .interaction-builder__add,
+    .longread-builder__add,
     .game-challenge__grid,
     .quiz-builder__option,
     .quiz-builder__answer,

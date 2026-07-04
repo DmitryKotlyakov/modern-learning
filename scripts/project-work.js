@@ -10,11 +10,13 @@ const QUIZ_BANK_MODULE_ID = 2;
 const INTERACTION_BUILDER_MODULE_ID = 3;
 const SCENARIO_BUILDER_MODULE_ID = 4;
 const GAMIFICATION_BUILDER_MODULE_ID = 5;
+const LONGREAD_BUILDER_MODULE_ID = 6;
 const MAX_QUIZ_QUESTIONS = 10;
 const MAX_INTERACTION_EXERCISES = 5;
 const MAX_SCENARIO_NODES = 5;
 const MAX_GAME_MECHANICS = 6;
 const MAX_GAME_METRICS = 5;
+const MAX_LONGREAD_BLOCKS = 10;
 
 const quizTypes = {
     single: "Один выбор",
@@ -32,6 +34,17 @@ const scenarioChoiceTypes = {
     good: "Удачный выбор",
     partial: "Частично удачный",
     risk: "Рискованный выбор"
+};
+
+const longreadBlockTypes = {
+    intro: { label: "Вступление", duration: 3 },
+    theory: { label: "Теория", duration: 6 },
+    example: { label: "Пример", duration: 4 },
+    question: { label: "Вопрос", duration: 3 },
+    hint: { label: "Подсказка", duration: 2 },
+    transition: { label: "Переход", duration: 1 },
+    task: { label: "Мини-задание", duration: 7 },
+    summary: { label: "Итог", duration: 3 }
 };
 
 const escapeHtml = (value) => String(value ?? "")
@@ -268,6 +281,36 @@ const getGameMetrics = (values, useDefaults = false) => {
     return useDefaults ? getDefaultGameMetrics() : [];
 };
 
+const getLongreadBlockTemplate = (type) => ({
+    id: `longread-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    type: Object.hasOwn(longreadBlockTypes, type) ? type : "theory",
+    title: "",
+    content: "",
+    action: "",
+    feedback: ""
+});
+
+const normalizeLongreadBlock = (block = {}) => {
+    const type = Object.hasOwn(longreadBlockTypes, block.type) ? block.type : "theory";
+
+    return {
+        id: block.id || `longread-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type,
+        title: String(block.title ?? ""),
+        content: String(block.content ?? ""),
+        action: String(block.action ?? ""),
+        feedback: String(block.feedback ?? "")
+    };
+};
+
+const getLongreadBlocks = (values) => Array.isArray(values.longreadBlocks)
+    ? values.longreadBlocks.slice(0, MAX_LONGREAD_BLOCKS).map(normalizeLongreadBlock)
+    : [];
+
+const getLongreadBlockDuration = (block) => longreadBlockTypes[block.type]?.duration ?? 3;
+
+const getLongreadTotalDuration = (blocks) => blocks.reduce((sum, block) => sum + getLongreadBlockDuration(block), 0);
+
 const getGameScores = (mechanics) => mechanics.reduce((result, mechanic) => ({
     cost: result.cost + Number(mechanic.cost || 0),
     filled: result.filled + (String(mechanic.title || mechanic.purpose).trim() ? 1 : 0)
@@ -293,6 +336,9 @@ const getInteractionExerciseCount = (values) => getInteractionExercises(values)
 
 const getScenarioNodeCount = (values) => getScenarioNodes(values)
     .filter((node) => String(node.title || node.scene || node.question).trim()).length;
+
+const getLongreadBlockCount = (values) => getLongreadBlocks(values)
+    .filter((block) => String(block.title || block.content || block.action).trim()).length;
 
 const getFilledCount = (module, values) => {
     if (module.id === QUIZ_BANK_MODULE_ID) {
@@ -327,6 +373,13 @@ const getFilledCount = (module, values) => {
         ].filter(Boolean).length;
     }
 
+    if (module.id === LONGREAD_BUILDER_MODULE_ID) {
+        return [
+            String(values.sourceMaterial ?? "").trim(),
+            getLongreadBlockCount(values) > 0 ? "longreadBlocks" : ""
+        ].filter(Boolean).length;
+    }
+
     return module.artifactFields.filter((field) => String(values[field.id] ?? "").trim()).length;
 };
 
@@ -351,6 +404,12 @@ const collectProject = () => modules.map((module) => {
             gameMechanics: getGameMechanics(storedValues),
             gameMetrics: getGameMetrics(storedValues),
             riskCheck: storedValues.riskCheck ?? ""
+        };
+    }
+    if (module.id === LONGREAD_BUILDER_MODULE_ID) {
+        values = {
+            sourceMaterial: storedValues.sourceMaterial ?? "",
+            longreadBlocks: getLongreadBlocks(storedValues)
         };
     }
     const filled = getFilledCount(module, values);
@@ -396,6 +455,11 @@ function renderArtifactForm() {
 
     if (moduleId === GAMIFICATION_BUILDER_MODULE_ID) {
         renderGamificationBuilderForm(module, content);
+        return;
+    }
+
+    if (moduleId === LONGREAD_BUILDER_MODULE_ID) {
+        renderLongreadBuilderForm(module, content);
         return;
     }
 
@@ -1441,6 +1505,236 @@ function renderInteractionBuilderForm(module, content) {
     });
 }
 
+function renderLongreadBuilderForm(module, content) {
+    const moduleId = module.id;
+    const saved = getArtifact(moduleId);
+    let blocks = getLongreadBlocks(saved);
+
+    if (Array.isArray(saved.longreadBlocks) && saved.longreadBlocks.length !== blocks.length) {
+        setArtifact(moduleId, {
+            ...saved,
+            longreadBlocks: blocks
+        });
+    }
+
+    const form = document.createElement("article");
+    form.className = "lesson-card artifact-card";
+    form.innerHTML = `
+        <div class="lesson-card__meta">
+            <span class="tag">Сквозной проект</span>
+            <span class="tag">До ${MAX_LONGREAD_BLOCKS} блоков</span>
+        </div>
+        <h2>${escapeHtml(module.artifactTitle)}</h2>
+        <p>Соберите структуру интерактивного лонгрида. Каждый тип блока имеет фиксированное время прохождения, поэтому можно сразу проверить ритм чтения и плотность интерактивных остановок.</p>
+        <form class="artifact-form longread-builder" data-artifact-form data-longread-builder-form>
+            <label class="artifact-field" for="artifact-sourceMaterial">
+                <span>Исходный материал</span>
+                <textarea id="artifact-sourceMaterial" name="sourceMaterial" rows="4" placeholder="Тема, черновик текста, ссылка на материал или краткое описание исходного блока.">${escapeHtml(saved.sourceMaterial ?? "")}</textarea>
+            </label>
+
+            <div class="quiz-builder__panel">
+                <div>
+                    <h3>Блоки лонгрида</h3>
+                    <p data-longread-count>${blocks.length} из ${MAX_LONGREAD_BLOCKS} · ${getLongreadTotalDuration(blocks)} мин</p>
+                </div>
+                <div class="longread-builder__add">
+                    ${Object.entries(longreadBlockTypes).map(([type, item]) => `
+                        <button class="button button--secondary" type="button" data-add-longread-block="${type}">
+                            ${escapeHtml(item.label)} · ${item.duration} мин
+                        </button>
+                    `).join("")}
+                </div>
+            </div>
+
+            <div class="longread-builder__list" data-longread-list></div>
+
+            <div class="artifact-actions">
+                <button class="button button--primary" type="submit">Сохранить в проект</button>
+                <a class="button button--secondary" href="../project/">Открыть проект</a>
+                <span class="artifact-status" data-artifact-status aria-live="polite"></span>
+            </div>
+        </form>
+    `;
+
+    const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
+    content.insertBefore(form, checklist || null);
+
+    const artifactForm = form.querySelector("[data-artifact-form]");
+    const list = form.querySelector("[data-longread-list]");
+    const count = form.querySelector("[data-longread-count]");
+    const status = form.querySelector("[data-artifact-status]");
+
+    const updateCount = () => {
+        count.textContent = `${blocks.length} из ${MAX_LONGREAD_BLOCKS} · ${getLongreadTotalDuration(blocks)} мин`;
+    };
+
+    const sync = (message = "Черновик сохранен") => {
+        blocks = collectLongreadBlocks(artifactForm);
+        setArtifact(moduleId, {
+            sourceMaterial: artifactForm.elements.sourceMaterial.value,
+            longreadBlocks: blocks
+        });
+        updateCount();
+        status.textContent = message;
+    };
+
+    const rerender = (message) => {
+        renderLongreadBlocks(list, blocks);
+        updateCount();
+        status.textContent = message;
+    };
+
+    rerender("");
+
+    artifactForm.addEventListener("click", (event) => {
+        const addButton = event.target.closest("[data-add-longread-block]");
+        const removeButton = event.target.closest("[data-remove-longread-block]");
+
+        if (addButton) {
+            blocks = collectLongreadBlocks(artifactForm);
+            if (blocks.length >= MAX_LONGREAD_BLOCKS) {
+                status.textContent = `Максимум ${MAX_LONGREAD_BLOCKS} блоков`;
+                return;
+            }
+            blocks.push(getLongreadBlockTemplate(addButton.dataset.addLongreadBlock));
+            rerender("Блок добавлен");
+            sync("Черновик сохранен");
+        }
+
+        if (removeButton) {
+            blocks = collectLongreadBlocks(artifactForm)
+                .filter((_, index) => index !== Number(removeButton.dataset.removeLongreadBlock));
+            rerender("Блок удален");
+            sync("Черновик сохранен");
+        }
+    });
+
+    artifactForm.addEventListener("input", () => sync());
+    artifactForm.addEventListener("change", () => sync());
+    artifactForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sync("Сохранено");
+        localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`, "true");
+        renderSiteProgress();
+        renderModuleMenu();
+        window.setTimeout(() => {
+            status.textContent = "";
+        }, 1800);
+    });
+}
+
+function renderLongreadBlocks(container, blocks) {
+    container.innerHTML = blocks.length ? blocks.map((block, index) => {
+        const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
+        return `
+            <article class="interaction-builder__exercise longread-builder__block" data-longread-block-index="${index}" data-longread-block-type="${escapeHtml(block.type)}">
+                <div class="quiz-builder__question-top">
+                    <div>
+                        <p class="eyebrow">Блок ${index + 1} · ${escapeHtml(blockType.label)} · ${blockType.duration} мин</p>
+                        <h3>${escapeHtml(block.title || blockType.label)}</h3>
+                    </div>
+                    <button class="button button--secondary" type="button" data-remove-longread-block="${index}">Удалить</button>
+                </div>
+                <label class="quiz-builder__field">
+                    <span>Заголовок блока</span>
+                    <input type="text" data-longread-field="title" value="${escapeHtml(block.title)}" placeholder="${escapeHtml(getLongreadPlaceholder(block.type, "title"))}">
+                </label>
+                <label class="quiz-builder__field">
+                    <span>Контент</span>
+                    <textarea data-longread-field="content" rows="5" placeholder="${escapeHtml(getLongreadPlaceholder(block.type, "content"))}">${escapeHtml(block.content)}</textarea>
+                </label>
+                <label class="quiz-builder__field">
+                    <span>Действие слушателя</span>
+                    <textarea data-longread-field="action" rows="3" placeholder="${escapeHtml(getLongreadPlaceholder(block.type, "action"))}">${escapeHtml(block.action)}</textarea>
+                </label>
+                <label class="quiz-builder__field">
+                    <span>Фидбек или следующий шаг</span>
+                    <textarea data-longread-field="feedback" rows="3" placeholder="${escapeHtml(getLongreadPlaceholder(block.type, "feedback"))}">${escapeHtml(block.feedback)}</textarea>
+                </label>
+            </article>
+        `;
+    }).join("") : `
+        <div class="quiz-builder__empty">
+            <h3>Пока нет блоков</h3>
+            <p>Добавьте вступление, теорию, пример, вопрос, подсказку, переход, мини-задание или итог. Начать удобно с 4-6 блоков на 20-30 минут чтения.</p>
+        </div>
+    `;
+}
+
+function getLongreadPlaceholder(type, field) {
+    const common = {
+        title: "Например: Почему линейный текст теряет внимание",
+        content: "Формат: основной текст блока, пример, тезисы или фрагмент лонгрида.",
+        action: "Формат: что делает слушатель в этом месте: читает, отвечает, выбирает переход, фиксирует вывод.",
+        feedback: "Формат: что увидит слушатель после действия или куда перейдет дальше."
+    };
+    const placeholders = {
+        intro: {
+            title: "Например: Что будем собирать",
+            content: "Формат: 2-4 предложения с контекстом, целью и ожидаемым результатом чтения.",
+            action: "Например: Сформулировать, какую проблему должен решить лонгрид.",
+            feedback: "Например: После вступления слушатель переходит к базовой модели темы."
+        },
+        theory: {
+            title: "Например: Как работает смысловая остановка",
+            content: "Формат: объяснение принципа, термина или модели. Держите блок вокруг одной мысли.",
+            action: "Например: Найти в объяснении ключевой критерий или правило.",
+            feedback: "Например: Коротко закрепите, какой принцип нужно забрать дальше."
+        },
+        example: {
+            title: "Например: Разбор хорошей интерактивной паузы",
+            content: "Формат: ситуация, пример текста, мини-кейс или сравнение двух вариантов.",
+            action: "Например: Определить, почему пример работает или где в нем ошибка.",
+            feedback: "Например: Объясните, какой признак делает пример удачным."
+        },
+        question: {
+            title: "Например: Проверка понимания",
+            content: "Формат: вопрос и варианты ответа или короткий открытый вопрос.",
+            action: "Например: Выбрать один вариант и объяснить выбор.",
+            feedback: "Например: Дайте правильный ответ и поясните, почему дистракторы не подходят."
+        },
+        hint: {
+            title: "Например: Подсказка перед сложным фрагментом",
+            content: "Формат: короткое пояснение, предупреждение о типичной ошибке или опорная формула.",
+            action: "Например: Сравнить подсказку с предыдущим примером.",
+            feedback: "Например: Предложите вернуться к правилу или перейти к следующему блоку."
+        },
+        transition: {
+            title: "Например: Выбор следующего раздела",
+            content: "Формат: 2-3 маршрута или пояснение, зачем нужен следующий шаг.",
+            action: "Например: Выбрать: повторить пример, перейти к практике или открыть углубление.",
+            feedback: "Например: Опишите, куда ведет каждый переход и что слушатель там получит."
+        },
+        task: {
+            title: "Например: Соберите карту своего лонгрида",
+            content: "Формат: практическая инструкция, условия задания и ожидаемый результат.",
+            action: "Например: Заполнить 3 точки интерактива для своего материала.",
+            feedback: "Например: Дайте критерии самопроверки и следующий шаг после выполнения."
+        },
+        summary: {
+            title: "Например: Что должно получиться",
+            content: "Формат: короткий итог, список выводов или мостик к следующему модулю.",
+            action: "Например: Отметить, какие блоки уже готовы для проекта.",
+            feedback: "Например: Напомните, где сохранить результат и как продолжить работу."
+        }
+    };
+
+    return placeholders[type]?.[field] || common[field] || "";
+}
+
+function collectLongreadBlocks(form) {
+    return [...form.querySelectorAll(".longread-builder__block[data-longread-block-index]")]
+        .slice(0, MAX_LONGREAD_BLOCKS)
+        .map((blockElement) => normalizeLongreadBlock({
+            id: `longread-${blockElement.dataset.longreadBlockIndex}`,
+            type: blockElement.dataset.longreadBlockType,
+            title: blockElement.querySelector("[data-longread-field='title']")?.value ?? "",
+            content: blockElement.querySelector("[data-longread-field='content']")?.value ?? "",
+            action: blockElement.querySelector("[data-longread-field='action']")?.value ?? "",
+            feedback: blockElement.querySelector("[data-longread-field='feedback']")?.value ?? ""
+        }));
+}
+
 function renderInteractionExercises(container, exercises) {
     container.innerHTML = exercises.length ? exercises.map((exercise, index) => `
         <article class="interaction-builder__exercise" data-exercise-index="${index}" data-exercise-type="${escapeHtml(exercise.type)}">
@@ -1781,6 +2075,57 @@ function renderExportInteractionExercises(values) {
     `;
 }
 
+function renderLongreadSummary(values) {
+    const blocks = getLongreadBlocks(values);
+    const filledBlocks = blocks.filter((block) => String(block.title || block.content || block.action).trim());
+
+    if (!filledBlocks.length) return "<span>Пока не добавлены</span>";
+
+    return `
+        <div class="quiz-bank-summary">
+            <p><b>Итоговое время:</b> ${getLongreadTotalDuration(filledBlocks)} мин</p>
+            <ol>
+                ${filledBlocks.map((block, index) => {
+                    const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
+                    return `
+                        <li>
+                            <strong>${index + 1}. ${escapeHtml(blockType.label)} · ${blockType.duration} мин: ${escapeHtml(block.title || "Без названия")}</strong>
+                            <p>${escapeHtml(block.content || "Контент пока не заполнен").replaceAll("\n", "<br>")}</p>
+                            <p><b>Действие:</b> ${escapeHtml(block.action || "Пока не указано").replaceAll("\n", "<br>")}</p>
+                            <p><b>Фидбек / следующий шаг:</b> ${escapeHtml(block.feedback || "Пока не указан").replaceAll("\n", "<br>")}</p>
+                        </li>
+                    `;
+                }).join("")}
+            </ol>
+        </div>
+    `;
+}
+
+function renderExportLongread(values) {
+    const blocks = getLongreadBlocks(values);
+    const filledBlocks = blocks.filter((block) => String(block.title || block.content || block.action).trim());
+
+    if (!filledBlocks.length) return "<p>Пока не добавлены</p>";
+
+    return `
+        <div class="export-longread">
+            <p><b>Расчетное время чтения:</b> ${getLongreadTotalDuration(filledBlocks)} мин</p>
+            ${filledBlocks.map((block, index) => {
+                const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
+                return `
+                    <section class="export-interaction export-longread__block">
+                        <p class="export-quiz__type">Блок ${index + 1} · ${escapeHtml(blockType.label)} · ${blockType.duration} мин</p>
+                        <h3>${escapeHtml(block.title || blockType.label)}</h3>
+                        <p>${escapeHtml(block.content || "Контент пока не заполнен").replaceAll("\n", "<br>")}</p>
+                        ${block.action ? `<p><b>Действие слушателя:</b> ${escapeHtml(block.action).replaceAll("\n", "<br>")}</p>` : ""}
+                        ${block.feedback ? `<p><b>Фидбек / следующий шаг:</b> ${escapeHtml(block.feedback).replaceAll("\n", "<br>")}</p>` : ""}
+                    </section>
+                `;
+            }).join("")}
+        </div>
+    `;
+}
+
 function renderScenarioSummary(values) {
     const nodes = getScenarioNodes(values);
 
@@ -2007,6 +2352,20 @@ function renderProjectFields(module, values) {
         `;
     }
 
+    if (module.id === LONGREAD_BUILDER_MODULE_ID) {
+        const sourceMaterial = String(values.sourceMaterial ?? "").trim();
+        return `
+            <div class="project-field">
+                <dt>Исходный материал</dt>
+                <dd>${sourceMaterial ? escapeHtml(sourceMaterial).replaceAll("\n", "<br>") : "<span>Пока не заполнено</span>"}</dd>
+            </div>
+            <div class="project-field">
+                <dt>Блоки лонгрида</dt>
+                <dd>${renderLongreadSummary(values)}</dd>
+            </div>
+        `;
+    }
+
     return module.artifactFields.map((field) => {
         const value = String(values[field.id] ?? "").trim();
         return `
@@ -2045,6 +2404,13 @@ function renderExportFields(module, values) {
             <section><h3>Какое поведение поддерживаем</h3><p>${escapeHtml(String(values.targetBehavior ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
             <section><h3>Игровые элементы</h3>${renderExportGamification(values)}</section>
             <section><h3>Как избежать декоративности</h3><p>${escapeHtml(String(values.riskCheck ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
+        `;
+    }
+
+    if (module.id === LONGREAD_BUILDER_MODULE_ID) {
+        return `
+            <section><h3>Исходный материал</h3><p>${escapeHtml(String(values.sourceMaterial ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
+            <section><h3>Интерактивный лонгрид</h3>${renderExportLongread(values)}</section>
         `;
     }
 

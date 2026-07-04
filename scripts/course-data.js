@@ -84,8 +84,7 @@ export const modules = [
         artifactTitle: "Интерактивная разметка материала",
         artifactFields: [
             { id: "sourceMaterial", label: "Исходный материал", type: "textarea", placeholder: "Какой текстовый материал вы превращаете в интерактивный лонгрид?" },
-            { id: "interactionPoints", label: "Точки интерактива", type: "textarea", placeholder: "Где будут вопросы, паузы, подсказки или переходы?" },
-            { id: "viewingPath", label: "Сценарий прохождения", type: "textarea", placeholder: "Как слушатель пройдет материал от начала до результата?" }
+            { id: "longreadBlocks", label: "Блоки лонгрида", type: "longread-builder", placeholder: "Добавьте до 10 блоков разных типов и наполните их контентом." }
         ]
     },
     {
