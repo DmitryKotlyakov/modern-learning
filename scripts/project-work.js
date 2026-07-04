@@ -311,6 +311,16 @@ const getLongreadBlockDuration = (block) => longreadBlockTypes[block.type]?.dura
 
 const getLongreadTotalDuration = (blocks) => blocks.reduce((sum, block) => sum + getLongreadBlockDuration(block), 0);
 
+const getLongreadValidationError = (blocks) => {
+    const firstRepeatedTheoryIndex = blocks.findIndex((block, index) => block.type === "theory" && blocks[index - 1]?.type === "theory");
+
+    if (firstRepeatedTheoryIndex >= 1) {
+        return `Ошибка: блоки ${firstRepeatedTheoryIndex} и ${firstRepeatedTheoryIndex + 1} оба имеют тип «Теория». Разбавьте их примером, вопросом, подсказкой или переходом.`;
+    }
+
+    return "";
+};
+
 const getGameScores = (mechanics) => mechanics.reduce((result, mechanic) => ({
     cost: result.cost + Number(mechanic.cost || 0),
     filled: result.filled + (String(mechanic.title || mechanic.purpose).trim() ? 1 : 0)
@@ -1547,6 +1557,7 @@ function renderLongreadBuilderForm(module, content) {
             </div>
 
             <div class="longread-builder__list" data-longread-list></div>
+            <p class="longread-builder__validation" data-longread-validation aria-live="polite"></p>
 
             <div class="artifact-actions">
                 <button class="button button--primary" type="submit">Сохранить в проект</button>
@@ -1562,10 +1573,15 @@ function renderLongreadBuilderForm(module, content) {
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-longread-list]");
     const count = form.querySelector("[data-longread-count]");
+    const validation = form.querySelector("[data-longread-validation]");
     const status = form.querySelector("[data-artifact-status]");
 
-    const updateCount = () => {
+    const updateMeta = () => {
         count.textContent = `${blocks.length} из ${MAX_LONGREAD_BLOCKS} · ${getLongreadTotalDuration(blocks)} мин`;
+        const validationError = getLongreadValidationError(blocks);
+        validation.textContent = validationError;
+        validation.classList.toggle("is-error", Boolean(validationError));
+        return validationError;
     };
 
     const sync = (message = "Черновик сохранен") => {
@@ -1574,13 +1590,14 @@ function renderLongreadBuilderForm(module, content) {
             sourceMaterial: artifactForm.elements.sourceMaterial.value,
             longreadBlocks: blocks
         });
-        updateCount();
+        updateMeta();
         status.textContent = message;
+        status.classList.remove("is-error");
     };
 
     const rerender = (message) => {
         renderLongreadBlocks(list, blocks);
-        updateCount();
+        updateMeta();
         status.textContent = message;
     };
 
@@ -1613,6 +1630,19 @@ function renderLongreadBuilderForm(module, content) {
     artifactForm.addEventListener("change", () => sync());
     artifactForm.addEventListener("submit", (event) => {
         event.preventDefault();
+        blocks = collectLongreadBlocks(artifactForm);
+        const validationError = getLongreadValidationError(blocks);
+        if (validationError) {
+            setArtifact(moduleId, {
+                sourceMaterial: artifactForm.elements.sourceMaterial.value,
+                longreadBlocks: blocks
+            });
+            updateMeta();
+            status.textContent = "Исправьте ошибку в структуре лонгрида";
+            status.classList.add("is-error");
+            return;
+        }
+        status.classList.remove("is-error");
         sync("Сохранено");
         localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`, "true");
         renderSiteProgress();

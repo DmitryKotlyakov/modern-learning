@@ -889,6 +889,17 @@
     font-weight: 800;
 }
 
+.artifact-status.is-error,
+.longread-builder__validation.is-error {
+    color: #b45309;
+}
+
+.longread-builder__validation {
+    min-height: 1.25rem;
+    margin: 0;
+    font-weight: 800;
+}
+
 .quiz-builder__panel,
 .quiz-builder__question,
 .quiz-builder__empty {
