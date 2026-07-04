@@ -722,7 +722,7 @@ function renderGamificationBuilderForm(module, content) {
                     <div class="game-dashboard">
                         <div class="game-meter">
                             <div class="game-meter__label"><span>Механик в наборе</span><strong data-game-builder-count>0 / ${MAX_GAME_MECHANICS}</strong></div>
-                            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--read" data-game-builder-count-meter></div></div>
+                            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--saved" data-game-builder-count-meter></div></div>
                         </div>
                         <div class="game-meter">
                             <div class="game-meter__label"><span>Использовано бюджета</span><strong data-game-builder-cost>0 / ${maxBudget}</strong></div>
@@ -860,7 +860,7 @@ function renderGameMechanicRows(container, mechanics, metrics = []) {
                     <span>Название механики</span>
                     <input type="text" data-game-mechanic-field="title" value="${escapeHtml(mechanic.title)}" placeholder="Например: прогресс по проектным шагам">
                 </label>
-                <label class="quiz-builder__field">
+                <label class="quiz-builder__field game-builder__cost-field">
                     <span>Стоимость</span>
                     <input type="number" min="0" max="10" step="1" data-game-mechanic-field="cost" value="${escapeHtml(mechanic.cost)}" placeholder="1">
                 </label>
@@ -875,7 +875,7 @@ function renderGameMechanicRows(container, mechanics, metrics = []) {
                     ${metrics.map((metric, metricIndex) => {
                         const value = mechanic.metricValues?.[metricIndex] ?? "0";
                         return `
-                            <label class="quiz-builder__field game-builder__mechanic-metric" data-game-mechanic-metric-index="${metricIndex}">
+                            <label class="quiz-builder__field game-builder__mechanic-metric game-builder__range-field" data-game-mechanic-metric-index="${metricIndex}">
                                 <span><span data-game-mechanic-metric-label>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>: <strong data-game-mechanic-metric-value-label>${escapeHtml(formatGameMetricValue(value))}</strong></span>
                                 <input type="range" min="-5" max="10" step="1" data-game-mechanic-metric-value="${metricIndex}" value="${escapeHtml(value)}">
                             </label>
@@ -904,7 +904,7 @@ function renderGameMetricRows(container, metrics) {
                     <span>Название показателя</span>
                     <input type="text" data-game-metric-field="title" value="${escapeHtml(metric.title)}" placeholder="Например: смысл для обучения, мотивация, риск декоративности">
                 </label>
-                <label class="quiz-builder__field">
+                <label class="quiz-builder__field game-builder__range-field">
                     <span>Базовое значение: <strong data-game-metric-value-label>${escapeHtml(formatGameMetricValue(metric.value))}</strong></span>
                     <input type="range" min="-5" max="10" step="1" data-game-metric-field="value" value="${escapeHtml(metric.value)}">
                 </label>

@@ -700,7 +700,11 @@
 }
 
 .game-meter__bar--risk {
-    background: #d16d5b;
+    background: var(--color-warm);
+}
+
+.game-challenge [data-game-meter]:not([data-game-meter="risk"]) {
+    background: var(--color-blue);
 }
 
 .game-badges {
@@ -749,6 +753,14 @@
 .game-builder__mechanic-metrics h5 {
     margin: 0;
     font-size: 0.95rem;
+}
+
+.game-builder__cost-field {
+    max-width: 9rem;
+}
+
+.game-builder__range-field {
+    max-width: 22rem;
 }
 
 .game-builder__metric-empty {
