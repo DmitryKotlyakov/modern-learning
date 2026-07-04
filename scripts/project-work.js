@@ -1896,49 +1896,58 @@ function renderExportGamification(values) {
 
     return `
         <div class="export-game" data-export-game data-max-budget="${maxBudget}">
-            <div class="export-game__dashboard">
-                <div class="export-game__budget">
-                    <span>Бюджет</span>
-                    <strong data-export-game-budget>0 / ${maxBudget}</strong>
+            <div class="export-game__top">
+                <div>
+                    <p class="export-quiz__type">Интерактивный пример</p>
+                    <h4>Соберите мотивационную механику</h4>
                 </div>
-                <div class="export-game__meters">
-                    ${filledMetrics.map((metric) => {
-                        const metricIndex = metrics.indexOf(metric);
-                        const total = getGameMetricTotal(filledMechanics, metricIndex, metric.value);
-                        return `
-                            <div class="export-game-meter" data-export-game-metric="${metricIndex}" data-base="${escapeHtml(metric.value)}" data-risk="${/риск/i.test(metric.title) ? "true" : "false"}">
-                                <div class="export-game-meter__label">
-                                    <span>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>
-                                    <strong data-export-game-metric-value>${escapeHtml(formatGameMetricValue(total))}</strong>
-                                </div>
-                                <div class="export-game-progress"><div data-export-game-metric-bar style="width: ${getGameMetricBarWidth(total)}"></div></div>
-                                ${metric.note ? `<p>${escapeHtml(metric.note)}</p>` : ""}
-                            </div>
-                        `;
-                    }).join("")}
-                </div>
-                <p class="export-game__feedback" data-export-game-feedback></p>
+                <span class="export-game__tag">Бюджет: <strong data-export-game-budget>0 / ${maxBudget}</strong></span>
             </div>
+            <p class="export-game__intro">Включайте и отключайте игровые элементы. Панель справа пересчитает бюджет, итоговые показатели и даст короткую обратную связь по набору.</p>
 
-            <div class="export-game__mechanics">
-                ${filledMechanics.map((mechanic, mechanicIndex) => `
-                    <label class="export-game-card is-selected">
-                        <input type="checkbox" data-export-game-mechanic data-cost="${escapeHtml(mechanic.cost)}" checked>
-                        <span>
-                            <strong>${escapeHtml(mechanic.title || `Механика ${mechanicIndex + 1}`)}</strong>
-                            <small>Стоимость: ${escapeHtml(mechanic.cost)}</small>
-                            <em>${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}</em>
-                            ${filledMetrics.length ? `
-                                <ul>
-                                    ${filledMetrics.map((metric) => {
-                                        const metricIndex = metrics.indexOf(metric);
-                                        return `<li data-export-game-effect="${metricIndex}" data-value="${escapeHtml(mechanic.metricValues?.[metricIndex] ?? "0")}">${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}: ${escapeHtml(formatGameMetricValue(mechanic.metricValues?.[metricIndex] ?? "0"))}</li>`;
-                                    }).join("")}
-                                </ul>
-                            ` : ""}
-                        </span>
-                    </label>
-                `).join("")}
+            <div class="export-game__grid">
+                <div class="export-game__options" aria-label="Игровые элементы">
+                    ${filledMechanics.map((mechanic, mechanicIndex) => `
+                        <label class="export-game-card is-selected">
+                            <input type="checkbox" data-export-game-mechanic data-cost="${escapeHtml(mechanic.cost)}" checked>
+                            <span>
+                                <strong>${escapeHtml(mechanic.title || `Механика ${mechanicIndex + 1}`)}</strong>
+                                <small>Стоимость: ${escapeHtml(mechanic.cost)}</small>
+                                <em>${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}</em>
+                                ${filledMetrics.length ? `
+                                    <ul>
+                                        ${filledMetrics.map((metric) => {
+                                            const metricIndex = metrics.indexOf(metric);
+                                            return `<li data-export-game-effect="${metricIndex}" data-value="${escapeHtml(mechanic.metricValues?.[metricIndex] ?? "0")}">${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}: ${escapeHtml(formatGameMetricValue(mechanic.metricValues?.[metricIndex] ?? "0"))}</li>`;
+                                        }).join("")}
+                                    </ul>
+                                ` : ""}
+                            </span>
+                        </label>
+                    `).join("")}
+                </div>
+
+                <div class="export-game__dashboard">
+                    <div class="export-game__meters">
+                        ${filledMetrics.map((metric) => {
+                            const metricIndex = metrics.indexOf(metric);
+                            const total = getGameMetricTotal(filledMechanics, metricIndex, metric.value);
+                            return `
+                                <div class="export-game-meter" data-export-game-metric="${metricIndex}" data-base="${escapeHtml(metric.value)}" data-risk="${/риск/i.test(metric.title) ? "true" : "false"}">
+                                    <div class="export-game-meter__label">
+                                        <span>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>
+                                        <strong data-export-game-metric-value>${escapeHtml(formatGameMetricValue(total))}</strong>
+                                    </div>
+                                    <div class="export-game-progress"><div data-export-game-metric-bar style="width: ${getGameMetricBarWidth(total)}"></div></div>
+                                    ${metric.note ? `<p>${escapeHtml(metric.note)}</p>` : ""}
+                                </div>
+                            `;
+                        }).join("")}
+                    </div>
+                    <div class="export-game__badges" data-export-game-badges aria-label="Полученные бейджи"></div>
+                    <div class="export-game__feedback" data-export-game-feedback aria-live="polite"></div>
+                    <button type="button" data-export-game-reset>Сбросить выбор</button>
+                </div>
             </div>
         </div>
     `;
@@ -2162,11 +2171,15 @@ function exportOnePageHtml() {
         .export-scenario-result.is-success { border-color: #17806d; background: #e7f4ef; }
         .export-scenario-result.is-error { border-color: #c95f4f; background: #fff0ec; }
         .export-scenario-restart { justify-self: start; background: #2f6fbb; }
-        .export-game { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.75fr); gap: 16px; align-items: start; }
+        .export-game { display: grid; gap: 16px; }
+        .export-game__top { display: flex; flex-wrap: wrap; gap: 16px; align-items: start; justify-content: space-between; }
+        .export-game__top h4, .export-game__top p, .export-game__intro { margin: 0; }
+        .export-game__tag { border: 1px solid #d8ded8; border-radius: 999px; padding: 6px 10px; background: #fff; font-weight: 800; }
+        .export-game__tag strong.is-error { color: #9f3f2f; }
+        .export-game__intro { color: #4b5b52; }
+        .export-game__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr); gap: 16px; align-items: start; }
         .export-game__dashboard { display: grid; gap: 14px; border: 1px solid #d8ded8; border-radius: 8px; padding: 16px; background: #fbfaf6; }
-        .export-game__budget { display: flex; gap: 12px; justify-content: space-between; font-weight: 800; }
-        .export-game__budget strong.is-error { color: #9f3f2f; }
-        .export-game__meters, .export-game__mechanics { display: grid; gap: 12px; }
+        .export-game__meters, .export-game__options { display: grid; gap: 12px; }
         .export-game-meter { display: grid; gap: 6px; }
         .export-game-meter__label { display: flex; gap: 12px; justify-content: space-between; font-weight: 800; }
         .export-game-meter p { margin: 0; color: #4b5b52; }
@@ -2180,7 +2193,11 @@ function exportOnePageHtml() {
         .export-game-card small, .export-game-card em { color: #4b5b52; }
         .export-game-card em { font-style: normal; }
         .export-game-card ul { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; }
-        .export-game__feedback { min-height: 24px; margin: 0; color: #4b5b52; font-weight: 700; }
+        .export-game__badges { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+        .export-game__badge { border-radius: 999px; padding: 5px 10px; color: #fff; background: #2f6fbb; font-size: 13px; font-weight: 800; }
+        .export-game__feedback { min-height: 56px; color: #4b5b52; font-weight: 700; }
+        .export-game__feedback p, .export-game__feedback ul { margin: 0; }
+        .export-game__feedback ul { padding-left: 18px; }
         .export-game__feedback.is-error { color: #9f3f2f; }
         .interaction-preview__task, .sorting-task, .ranking-task { display: grid; gap: 16px; margin-top: 14px; }
         .interaction-preview__instruction { margin: 0; color: #4b5b52; }
@@ -2209,7 +2226,7 @@ function exportOnePageHtml() {
             h1 { font-size: 32px; }
             article { padding: 18px; }
             .sorting-task__source, .sorting-task__zones { grid-template-columns: 1fr; }
-            .export-game { grid-template-columns: 1fr; }
+            .export-game__grid { grid-template-columns: 1fr; }
             .ranking-item { grid-template-columns: 32px minmax(0, 1fr); }
             .ranking-item__controls { grid-column: 2; }
         }
@@ -2406,6 +2423,22 @@ function exportOnePageHtml() {
         return Math.max(0, Math.min(100, (Number(value) || 0) * 10)) + "%";
     }
 
+    function getExportGameBadges(game, selectedMechanics, usedBudget, maxBudget) {
+        const badges = [];
+        const selectedText = selectedMechanics
+            .map((input) => input.closest(".export-game-card")?.textContent || "")
+            .join(" ")
+            .toLowerCase();
+
+        if (selectedMechanics.length >= 2 && usedBudget <= maxBudget) badges.push("Собранный набор");
+        if (/прогресс|чек|этап/.test(selectedText)) badges.push("Видимый прогресс");
+        if (/попыт|фидбек|ошиб/.test(selectedText)) badges.push("Повторная попытка");
+        if (/огранич|челлендж|ресурс|таймер/.test(selectedText) && usedBudget <= maxBudget) badges.push("Мягкий челлендж");
+        if (!badges.length) badges.push("Нужна доработка");
+
+        return badges;
+    }
+
     function updateExportGame(game) {
         const mechanics = [...game.querySelectorAll("[data-export-game-mechanic]")];
         const selectedMechanics = mechanics.filter((input) => input.checked);
@@ -2413,6 +2446,7 @@ function exportOnePageHtml() {
         const usedBudget = selectedMechanics.reduce((sum, input) => sum + (Number(input.dataset.cost) || 0), 0);
         const budget = game.querySelector("[data-export-game-budget]");
         const feedback = game.querySelector("[data-export-game-feedback]");
+        const badges = game.querySelector("[data-export-game-badges]");
 
         if (budget) {
             budget.textContent = usedBudget + " / " + maxBudget;
@@ -2438,16 +2472,31 @@ function exportOnePageHtml() {
             input.closest(".export-game-card")?.classList.toggle("is-selected", input.checked);
         });
 
+        if (badges) {
+            badges.innerHTML = getExportGameBadges(game, selectedMechanics, usedBudget, maxBudget)
+                .map((badge) => '<span class="export-game__badge">' + badge + '</span>')
+                .join("");
+        }
+
         if (feedback) {
+            const selectedList = selectedMechanics
+                .map((input) => {
+                    const card = input.closest(".export-game-card");
+                    const title = card?.querySelector("strong")?.textContent || "Механика";
+                    const purpose = card?.querySelector("em")?.textContent || "Пояснение пока не добавлено";
+                    return "<li><b>" + title + "</b>: " + purpose + "</li>";
+                })
+                .join("");
+            const overBudget = usedBudget > maxBudget
+                ? "<li>Бюджет превышен: отключите одну механику или замените ее более точной.</li>"
+                : "";
+
             if (!selectedMechanics.length) {
-                feedback.textContent = "Выберите механики, чтобы увидеть бюджет и итоговые показатели.";
+                feedback.innerHTML = "<p>Выберите 2-3 механики. Смотрите, как меняются показатели и бюджет.</p>";
                 feedback.classList.remove("is-error");
-            } else if (usedBudget > maxBudget) {
-                feedback.textContent = "Бюджет превышен: отключите одну механику или замените ее более точной.";
-                feedback.classList.add("is-error");
             } else {
-                feedback.textContent = "Набор укладывается в бюджет. Проверьте, что показатели поддерживают учебное поведение.";
-                feedback.classList.remove("is-error");
+                feedback.innerHTML = "<ul>" + selectedList + overBudget + "</ul>";
+                feedback.classList.toggle("is-error", usedBudget > maxBudget);
             }
         }
     }
@@ -2458,6 +2507,12 @@ function exportOnePageHtml() {
             if (event.target.matches("[data-export-game-mechanic]")) {
                 updateExportGame(game);
             }
+        });
+        game.querySelector("[data-export-game-reset]")?.addEventListener("click", () => {
+            game.querySelectorAll("[data-export-game-mechanic]").forEach((input) => {
+                input.checked = false;
+            });
+            updateExportGame(game);
         });
     }
 
