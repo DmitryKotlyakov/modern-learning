@@ -75,15 +75,15 @@ export const modules = [
     },
     {
         id: 6,
-        title: "Интерактивное видео и лонгриды",
+        title: "Интерактивные лонгриды",
         duration: "60 мин",
         slug: "module-6/",
-        mechanic: "Interactive video / Course presentation",
-        result: "Видео или лонгрид с точками выбора, вопросами и переходами.",
-        practice: "Разметить материал, добавить интерактивные остановки и проверить сценарий просмотра.",
+        mechanic: "Interactive longread",
+        result: "Лонгрид с точками выбора, вопросами и переходами.",
+        practice: "Разметить текстовый материал, добавить интерактивные остановки и проверить сценарий чтения.",
         artifactTitle: "Интерактивная разметка материала",
         artifactFields: [
-            { id: "sourceMaterial", label: "Исходный материал", type: "textarea", placeholder: "Какой текст или видео вы превращаете в интерактив?" },
+            { id: "sourceMaterial", label: "Исходный материал", type: "textarea", placeholder: "Какой текстовый материал вы превращаете в интерактивный лонгрид?" },
             { id: "interactionPoints", label: "Точки интерактива", type: "textarea", placeholder: "Где будут вопросы, паузы, подсказки или переходы?" },
             { id: "viewingPath", label: "Сценарий прохождения", type: "textarea", placeholder: "Как слушатель пройдет материал от начала до результата?" }
         ]
