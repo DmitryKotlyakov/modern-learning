@@ -1886,6 +1886,64 @@ function renderGameMechanicsSummary(values) {
     `;
 }
 
+function renderExportGamification(values) {
+    const mechanics = getGameMechanics(values);
+    const metrics = getGameMetrics(values);
+    const filledMechanics = mechanics.filter((mechanic) => String(mechanic.title || mechanic.purpose).trim());
+    const filledMetrics = metrics.filter((metric) => String(metric.title || metric.note).trim());
+
+    if (!filledMechanics.length && !filledMetrics.length) return "<p>Пока не добавлены</p>";
+
+    return `
+        <div class="export-game" data-export-game data-max-budget="${maxBudget}">
+            <div class="export-game__dashboard">
+                <div class="export-game__budget">
+                    <span>Бюджет</span>
+                    <strong data-export-game-budget>0 / ${maxBudget}</strong>
+                </div>
+                <div class="export-game__meters">
+                    ${filledMetrics.map((metric) => {
+                        const metricIndex = metrics.indexOf(metric);
+                        const total = getGameMetricTotal(filledMechanics, metricIndex, metric.value);
+                        return `
+                            <div class="export-game-meter" data-export-game-metric="${metricIndex}" data-base="${escapeHtml(metric.value)}" data-risk="${/риск/i.test(metric.title) ? "true" : "false"}">
+                                <div class="export-game-meter__label">
+                                    <span>${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}</span>
+                                    <strong data-export-game-metric-value>${escapeHtml(formatGameMetricValue(total))}</strong>
+                                </div>
+                                <div class="export-game-progress"><div data-export-game-metric-bar style="width: ${getGameMetricBarWidth(total)}"></div></div>
+                                ${metric.note ? `<p>${escapeHtml(metric.note)}</p>` : ""}
+                            </div>
+                        `;
+                    }).join("")}
+                </div>
+                <p class="export-game__feedback" data-export-game-feedback></p>
+            </div>
+
+            <div class="export-game__mechanics">
+                ${filledMechanics.map((mechanic, mechanicIndex) => `
+                    <label class="export-game-card is-selected">
+                        <input type="checkbox" data-export-game-mechanic data-cost="${escapeHtml(mechanic.cost)}" checked>
+                        <span>
+                            <strong>${escapeHtml(mechanic.title || `Механика ${mechanicIndex + 1}`)}</strong>
+                            <small>Стоимость: ${escapeHtml(mechanic.cost)}</small>
+                            <em>${escapeHtml(mechanic.purpose || "Пояснение пока не добавлено")}</em>
+                            ${filledMetrics.length ? `
+                                <ul>
+                                    ${filledMetrics.map((metric) => {
+                                        const metricIndex = metrics.indexOf(metric);
+                                        return `<li data-export-game-effect="${metricIndex}" data-value="${escapeHtml(mechanic.metricValues?.[metricIndex] ?? "0")}">${escapeHtml(metric.title || `Показатель ${metricIndex + 1}`)}: ${escapeHtml(formatGameMetricValue(mechanic.metricValues?.[metricIndex] ?? "0"))}</li>`;
+                                    }).join("")}
+                                </ul>
+                            ` : ""}
+                        </span>
+                    </label>
+                `).join("")}
+            </div>
+        </div>
+    `;
+}
+
 function renderProjectFields(module, values) {
     if (module.id === QUIZ_BANK_MODULE_ID) {
         const quizGoal = String(values.quizGoal ?? "").trim();
@@ -1984,7 +2042,7 @@ function renderExportFields(module, values) {
     if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
         return `
             <section><h3>Какое поведение поддерживаем</h3><p>${escapeHtml(String(values.targetBehavior ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
-            <section><h3>Игровые элементы</h3>${renderGameMechanicsSummary(values)}</section>
+            <section><h3>Игровые элементы</h3>${renderExportGamification(values)}</section>
             <section><h3>Как избежать декоративности</h3><p>${escapeHtml(String(values.riskCheck ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
         `;
     }
@@ -2104,6 +2162,26 @@ function exportOnePageHtml() {
         .export-scenario-result.is-success { border-color: #17806d; background: #e7f4ef; }
         .export-scenario-result.is-error { border-color: #c95f4f; background: #fff0ec; }
         .export-scenario-restart { justify-self: start; background: #2f6fbb; }
+        .export-game { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.75fr); gap: 16px; align-items: start; }
+        .export-game__dashboard { display: grid; gap: 14px; border: 1px solid #d8ded8; border-radius: 8px; padding: 16px; background: #fbfaf6; }
+        .export-game__budget { display: flex; gap: 12px; justify-content: space-between; font-weight: 800; }
+        .export-game__budget strong.is-error { color: #9f3f2f; }
+        .export-game__meters, .export-game__mechanics { display: grid; gap: 12px; }
+        .export-game-meter { display: grid; gap: 6px; }
+        .export-game-meter__label { display: flex; gap: 12px; justify-content: space-between; font-weight: 800; }
+        .export-game-meter p { margin: 0; color: #4b5b52; }
+        .export-game-progress { overflow: hidden; height: 10px; border-radius: 999px; background: #d8ded8; }
+        .export-game-progress div { width: 0%; height: 100%; background: #2f6fbb; transition: width 180ms ease; }
+        .export-game-meter[data-risk="true"] .export-game-progress div { background: #f3c969; }
+        .export-game-card { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; border: 1px solid #d8ded8; border-radius: 8px; padding: 14px; background: #fff; cursor: pointer; }
+        .export-game-card.is-selected { border-color: #2f6fbb; box-shadow: inset 0 0 0 2px #2f6fbb; }
+        .export-game-card input { margin-top: 3px; accent-color: #2f6fbb; }
+        .export-game-card span { display: grid; gap: 6px; }
+        .export-game-card small, .export-game-card em { color: #4b5b52; }
+        .export-game-card em { font-style: normal; }
+        .export-game-card ul { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; }
+        .export-game__feedback { min-height: 24px; margin: 0; color: #4b5b52; font-weight: 700; }
+        .export-game__feedback.is-error { color: #9f3f2f; }
         .interaction-preview__task, .sorting-task, .ranking-task { display: grid; gap: 16px; margin-top: 14px; }
         .interaction-preview__instruction { margin: 0; color: #4b5b52; }
         .sorting-task__source, .sorting-task__zones { display: grid; gap: 12px; }
@@ -2131,6 +2209,7 @@ function exportOnePageHtml() {
             h1 { font-size: 32px; }
             article { padding: 18px; }
             .sorting-task__source, .sorting-task__zones { grid-template-columns: 1fr; }
+            .export-game { grid-template-columns: 1fr; }
             .ranking-item { grid-template-columns: 32px minmax(0, 1fr); }
             .ranking-item__controls { grid-column: 2; }
         }
@@ -2317,6 +2396,72 @@ function exportOnePageHtml() {
     }
 
     document.querySelectorAll("[data-export-scenario]").forEach(initExportScenario);
+
+    function formatExportGameValue(value) {
+        const numberValue = Number(value) || 0;
+        return numberValue > 0 ? "+" + numberValue : String(numberValue);
+    }
+
+    function getExportGameBarWidth(value) {
+        return Math.max(0, Math.min(100, (Number(value) || 0) * 10)) + "%";
+    }
+
+    function updateExportGame(game) {
+        const mechanics = [...game.querySelectorAll("[data-export-game-mechanic]")];
+        const selectedMechanics = mechanics.filter((input) => input.checked);
+        const maxBudget = Number(game.dataset.maxBudget) || 0;
+        const usedBudget = selectedMechanics.reduce((sum, input) => sum + (Number(input.dataset.cost) || 0), 0);
+        const budget = game.querySelector("[data-export-game-budget]");
+        const feedback = game.querySelector("[data-export-game-feedback]");
+
+        if (budget) {
+            budget.textContent = usedBudget + " / " + maxBudget;
+            budget.classList.toggle("is-error", usedBudget > maxBudget);
+        }
+
+        game.querySelectorAll("[data-export-game-metric]").forEach((metric) => {
+            const metricIndex = metric.dataset.exportGameMetric;
+            const base = Number(metric.dataset.base) || 0;
+            const total = selectedMechanics.reduce((sum, input) => {
+                const card = input.closest(".export-game-card");
+                const effect = card?.querySelector('[data-export-game-effect="' + metricIndex + '"]');
+                return sum + (Number(effect?.dataset.value) || 0);
+            }, base);
+            const value = metric.querySelector("[data-export-game-metric-value]");
+            const bar = metric.querySelector("[data-export-game-metric-bar]");
+
+            if (value) value.textContent = formatExportGameValue(total);
+            if (bar) bar.style.width = getExportGameBarWidth(total);
+        });
+
+        mechanics.forEach((input) => {
+            input.closest(".export-game-card")?.classList.toggle("is-selected", input.checked);
+        });
+
+        if (feedback) {
+            if (!selectedMechanics.length) {
+                feedback.textContent = "Выберите механики, чтобы увидеть бюджет и итоговые показатели.";
+                feedback.classList.remove("is-error");
+            } else if (usedBudget > maxBudget) {
+                feedback.textContent = "Бюджет превышен: отключите одну механику или замените ее более точной.";
+                feedback.classList.add("is-error");
+            } else {
+                feedback.textContent = "Набор укладывается в бюджет. Проверьте, что показатели поддерживают учебное поведение.";
+                feedback.classList.remove("is-error");
+            }
+        }
+    }
+
+    function initExportGame(game) {
+        updateExportGame(game);
+        game.addEventListener("change", (event) => {
+            if (event.target.matches("[data-export-game-mechanic]")) {
+                updateExportGame(game);
+            }
+        });
+    }
+
+    document.querySelectorAll("[data-export-game]").forEach(initExportGame);
 
     function getCards(task) {
         return [...task.querySelectorAll(".sorting-card")];
