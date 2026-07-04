@@ -899,7 +899,7 @@ function renderGameMetricRows(container, metrics) {
                 <h4>Показатель ${index + 1}</h4>
                 <button class="button button--secondary" type="button" data-remove-game-metric="${index}">Убрать</button>
             </div>
-            <div class="scenario-builder__choice-grid">
+            <div class="scenario-builder__choice-grid game-builder__metric-grid">
                 <label class="quiz-builder__field">
                     <span>Название показателя</span>
                     <input type="text" data-game-metric-field="title" value="${escapeHtml(metric.title)}" placeholder="Например: смысл для обучения, мотивация, риск декоративности">

@@ -1060,6 +1060,10 @@
     grid-template-columns: minmax(16rem, 1fr) 9rem;
 }
 
+.scenario-builder__choice-grid.game-builder__metric-grid {
+    grid-template-columns: minmax(18rem, 1fr) 22rem;
+}
+
 .quiz-builder__option input[type="radio"],
 .quiz-builder__option input[type="checkbox"] {
     width: 1rem;
