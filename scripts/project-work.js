@@ -2138,20 +2138,55 @@ function renderExportLongread(values) {
     if (!filledBlocks.length) return "<p>Пока не добавлены</p>";
 
     return `
-        <div class="export-longread">
-            <p><b>Расчетное время чтения:</b> ${getLongreadTotalDuration(filledBlocks)} мин</p>
+        <div class="export-longread" data-export-longread>
+            <div class="export-longread__top">
+                <div>
+                    <p class="export-quiz__type">Интерактивный лонгрид</p>
+                    <h4>Проходите материал по блокам</h4>
+                </div>
+                <span class="export-game__tag" data-longread-counter>Блок 1 из ${filledBlocks.length}</span>
+            </div>
+            <p class="export-longread__meta">Расчетное время чтения: <b>${getLongreadTotalDuration(filledBlocks)} мин</b></p>
+            <div class="export-longread__progress" aria-hidden="true"><div data-longread-progress></div></div>
+            <div class="export-longread__nav" aria-label="Навигация по блокам">
+                ${filledBlocks.map((block, index) => {
+                    const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
+                    return `
+                        <button type="button" data-longread-jump="${index}" ${index === 0 ? "class=\"is-active\"" : ""}>
+                            <span>${index + 1}</span>
+                            ${escapeHtml(blockType.label)}
+                            <small>${blockType.duration} мин</small>
+                        </button>
+                    `;
+                }).join("")}
+            </div>
             ${filledBlocks.map((block, index) => {
                 const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
                 return `
-                    <section class="export-interaction export-longread__block">
+                    <section class="export-interaction export-longread__block" data-longread-block data-block-index="${index}" ${index === 0 ? "" : "hidden"}>
                         <p class="export-quiz__type">Блок ${index + 1} · ${escapeHtml(blockType.label)} · ${blockType.duration} мин</p>
                         <h3>${escapeHtml(block.title || blockType.label)}</h3>
                         <p>${escapeHtml(block.content || "Контент пока не заполнен").replaceAll("\n", "<br>")}</p>
-                        ${block.action ? `<p><b>Действие слушателя:</b> ${escapeHtml(block.action).replaceAll("\n", "<br>")}</p>` : ""}
-                        ${block.feedback ? `<p><b>Фидбек / следующий шаг:</b> ${escapeHtml(block.feedback).replaceAll("\n", "<br>")}</p>` : ""}
+                        ${block.action ? `
+                            <button type="button" data-longread-toggle="action">Показать действие</button>
+                            <div class="export-longread__detail" data-longread-detail="action" hidden>
+                                <p><b>Действие слушателя:</b> ${escapeHtml(block.action).replaceAll("\n", "<br>")}</p>
+                            </div>
+                        ` : ""}
+                        ${block.feedback ? `
+                            <button type="button" data-longread-toggle="feedback">Показать фидбек / следующий шаг</button>
+                            <div class="export-longread__detail" data-longread-detail="feedback" hidden>
+                                <p><b>Фидбек / следующий шаг:</b> ${escapeHtml(block.feedback).replaceAll("\n", "<br>")}</p>
+                            </div>
+                        ` : ""}
                     </section>
                 `;
             }).join("")}
+            <div class="export-longread__controls">
+                <button type="button" data-longread-prev>Назад</button>
+                <button type="button" data-longread-next>Далее</button>
+                <span data-longread-status aria-live="polite"></span>
+            </div>
         </div>
     `;
 }
@@ -2541,6 +2576,26 @@ function exportOnePageHtml() {
         .export-interactions { display: grid; gap: 16px; }
         .export-interaction { border: 1px solid #d8ded8; border-radius: 8px; padding: 18px; background: #fbfaf6; }
         .export-interaction__hint { margin: 12px 0 0; color: #4b5b52; }
+        .export-longread { display: grid; gap: 16px; }
+        .export-longread__top { display: flex; flex-wrap: wrap; gap: 16px; align-items: start; justify-content: space-between; }
+        .export-longread__top h4, .export-longread__top p, .export-longread__meta { margin: 0; }
+        .export-longread__meta { color: #4b5b52; }
+        .export-longread__progress { overflow: hidden; height: 10px; border-radius: 999px; background: #d8ded8; }
+        .export-longread__progress div { width: 0%; height: 100%; background: #2f6fbb; transition: width 180ms ease; }
+        .export-longread__nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .export-longread__nav button { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 8px; align-items: center; border: 1px solid #d8ded8; color: #17211b; background: #fff; text-align: left; }
+        .export-longread__nav button.is-active { border-color: #2f6fbb; box-shadow: inset 0 0 0 2px #2f6fbb; }
+        .export-longread__nav span { display: grid; grid-row: span 2; width: 28px; height: 28px; place-items: center; border-radius: 6px; color: #fff; background: #2f6fbb; font-weight: 800; }
+        .export-longread__nav small { color: #4b5b52; font-weight: 700; }
+        .export-longread__block[hidden] { display: none; }
+        .export-longread__block { display: grid; gap: 12px; }
+        .export-longread__block > p { margin: 0; }
+        .export-longread__block button { justify-self: start; background: #2f6fbb; }
+        .export-longread__detail { border: 1px solid #d8ded8; border-left: 4px solid #2f6fbb; border-radius: 8px; padding: 12px; background: #fff; }
+        .export-longread__detail[hidden] { display: none; }
+        .export-longread__detail p { margin: 0; }
+        .export-longread__controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .export-longread__controls span { min-height: 24px; color: #4b5b52; font-weight: 700; }
         .export-scenario { display: grid; gap: 16px; }
         .export-scenario__node[hidden] { display: none; }
         .export-scenario-choices { display: grid; gap: 12px; margin-top: 14px; }
@@ -2611,6 +2666,7 @@ function exportOnePageHtml() {
             article { padding: 18px; }
             .sorting-task__source, .sorting-task__zones { grid-template-columns: 1fr; }
             .export-game__grid { grid-template-columns: 1fr; }
+            .export-longread__nav { grid-template-columns: 1fr; }
             .ranking-item { grid-template-columns: 32px minmax(0, 1fr); }
             .ranking-item__controls { grid-column: 2; }
         }
@@ -2703,6 +2759,69 @@ function exportOnePageHtml() {
             }
         });
     });
+
+    function initExportLongread(longread) {
+        const blocks = [...longread.querySelectorAll("[data-longread-block]")];
+        const jumpButtons = [...longread.querySelectorAll("[data-longread-jump]")];
+        const counter = longread.querySelector("[data-longread-counter]");
+        const progress = longread.querySelector("[data-longread-progress]");
+        const status = longread.querySelector("[data-longread-status]");
+        let currentIndex = 0;
+
+        function showBlock(index) {
+            const safeIndex = Math.max(0, Math.min(blocks.length - 1, index));
+            currentIndex = safeIndex;
+
+            blocks.forEach((block, blockIndex) => {
+                block.hidden = blockIndex !== safeIndex;
+            });
+            jumpButtons.forEach((button, buttonIndex) => {
+                button.classList.toggle("is-active", buttonIndex === safeIndex);
+            });
+
+            if (counter) counter.textContent = "Блок " + (safeIndex + 1) + " из " + blocks.length;
+            if (progress) progress.style.width = blocks.length ? Math.round(((safeIndex + 1) / blocks.length) * 100) + "%" : "0%";
+            if (status) {
+                status.textContent = safeIndex === blocks.length - 1
+                    ? "Это последний блок лонгрида."
+                    : "Следующий блок: " + (safeIndex + 2) + ".";
+            }
+        }
+
+        longread.addEventListener("click", (event) => {
+            const jump = event.target.closest("[data-longread-jump]");
+            const prev = event.target.closest("[data-longread-prev]");
+            const next = event.target.closest("[data-longread-next]");
+            const toggle = event.target.closest("[data-longread-toggle]");
+
+            if (jump) {
+                showBlock(Number(jump.dataset.longreadJump));
+            }
+
+            if (prev) {
+                showBlock(currentIndex - 1);
+            }
+
+            if (next) {
+                showBlock(currentIndex + 1);
+            }
+
+            if (toggle) {
+                const block = toggle.closest("[data-longread-block]");
+                const detail = block?.querySelector('[data-longread-detail="' + toggle.dataset.longreadToggle + '"]');
+                if (!detail) return;
+
+                detail.hidden = !detail.hidden;
+                toggle.textContent = detail.hidden
+                    ? (toggle.dataset.longreadToggle === "action" ? "Показать действие" : "Показать фидбек / следующий шаг")
+                    : (toggle.dataset.longreadToggle === "action" ? "Скрыть действие" : "Скрыть фидбек / следующий шаг");
+            }
+        });
+
+        showBlock(0);
+    }
+
+    document.querySelectorAll("[data-export-longread]").forEach(initExportLongread);
 
     function normalizeScenarioRef(value) {
         return String(value || "").trim().toLowerCase().replaceAll("ё", "е");
