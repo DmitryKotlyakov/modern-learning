@@ -855,7 +855,7 @@ function renderGameMechanicRows(container, mechanics, metrics = []) {
                 <h4>Механика ${index + 1}</h4>
                 <button class="button button--secondary" type="button" data-remove-game-mechanic="${index}">Убрать</button>
             </div>
-            <div class="scenario-builder__choice-grid">
+            <div class="scenario-builder__choice-grid game-builder__mechanic-grid">
                 <label class="quiz-builder__field">
                     <span>Название механики</span>
                     <input type="text" data-game-mechanic-field="title" value="${escapeHtml(mechanic.title)}" placeholder="Например: прогресс по проектным шагам">

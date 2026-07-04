@@ -755,6 +755,10 @@
     max-width: 9rem;
 }
 
+.game-builder__mechanic-grid {
+    grid-template-columns: minmax(16rem, 1fr) 9rem;
+}
+
 .game-builder__range-field {
     max-width: 22rem;
 }
