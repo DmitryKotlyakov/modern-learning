@@ -366,14 +366,6 @@ const collectProject = () => modules.map((module) => {
     };
 });
 
-const buildH5pBrief = () => ({
-    format: "h5p-preparation-brief",
-    recommendedContentType: "H5P Interactive Book или H5P Column",
-    generatedAt: new Date().toISOString(),
-    note: "Это структурированный brief для сборки H5P в Lumi/H5P. Это еще не полноценный .h5p-пакет.",
-    modules: collectProject()
-});
-
 export function initProjectWorkspace() {
     renderArtifactForm();
     renderProjectDashboard();
@@ -2097,13 +2089,12 @@ function renderProjectDashboard() {
                 <span class="tag">${percent}% полей заполнено</span>
             </div>
             <h2>Карта интерактивного урока</h2>
-            <p>Здесь собираются все практические артефакты курса. Заполняйте формы в модулях, а эта страница будет становиться финальным brief вашего интерактивного урока.</p>
+            <p>Здесь собираются все практические артефакты курса. Заполняйте формы в модулях, а эта страница будет становиться финальной картой вашего интерактивного урока.</p>
             <div class="progress-meter"><div class="progress-meter__bar" style="width: ${percent}%"></div></div>
         </article>
         <div class="project-export" data-project-export>
             <button class="button button--primary" type="button" data-export-html>Скачать одностраничный HTML</button>
             <button class="button button--secondary" type="button" data-export-json>Скачать JSON проекта</button>
-            <button class="button button--secondary" type="button" data-export-h5p>Скачать brief для H5P</button>
         </div>
         <div class="project-artifacts">${cards}</div>
     `;
@@ -2111,9 +2102,6 @@ function renderProjectDashboard() {
     summary.querySelector("[data-export-html]").addEventListener("click", exportOnePageHtml);
     summary.querySelector("[data-export-json]").addEventListener("click", () => {
         downloadFile("interactive-course-project.json", JSON.stringify({ modules: collectProject() }, null, 2), "application/json");
-    });
-    summary.querySelector("[data-export-h5p]").addEventListener("click", () => {
-        downloadFile("h5p-preparation-brief.json", JSON.stringify(buildH5pBrief(), null, 2), "application/json");
     });
 }
 
