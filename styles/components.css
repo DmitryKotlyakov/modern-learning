@@ -699,10 +699,6 @@
     font-weight: 800;
 }
 
-.game-meter__bar--risk {
-    background: var(--color-warm);
-}
-
 .game-challenge [data-game-meter]:not([data-game-meter="risk"]) {
     background: var(--color-blue);
 }
@@ -1155,6 +1151,10 @@
 
 .progress-meter__bar--saved {
     background: var(--color-blue);
+}
+
+.game-meter__bar--risk {
+    background: var(--color-warm);
 }
 
 @media (max-width: 1080px) {
