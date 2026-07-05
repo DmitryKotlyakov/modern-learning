@@ -86,6 +86,14 @@
     content: "";
 }
 
+body[data-page="home"] .outcomes-list li {
+    padding-left: 0;
+}
+
+body[data-page="home"] .outcomes-list li::before {
+    display: none;
+}
+
 .module-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
