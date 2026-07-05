@@ -2,7 +2,6 @@ export const modules = [
     {
         id: 1,
         title: "Введение в интерактивное обучение",
-        duration: "45-60 мин",
         slug: "module-1/",
         mechanic: "Выбор механики",
         result: "Карта образовательной задачи и подходящих интерактивных форматов.",
@@ -19,7 +18,6 @@ export const modules = [
     {
         id: 2,
         title: "Квизы и проверка знаний",
-        duration: "90 мин",
         slug: "module-2/",
         mechanic: "Quiz",
         result: "Квиз с разными типами вопросов и понятной обратной связью.",
@@ -33,7 +31,6 @@ export const modules = [
     {
         id: 3,
         title: "Drag-and-drop и сортировка",
-        duration: "90 мин",
         slug: "module-3/",
         mechanic: "Drag-and-drop",
         result: "Упражнение на сопоставление, сортировку или сборку схемы.",
@@ -47,7 +44,6 @@ export const modules = [
     {
         id: 4,
         title: "Разветвленные сценарии и симуляции",
-        duration: "120 мин",
         slug: "module-4/",
         mechanic: "Branching scenario",
         result: "Дерево решений и рабочий прототип сценария.",
@@ -61,7 +57,6 @@ export const modules = [
     {
         id: 5,
         title: "Геймификация",
-        duration: "60-90 мин",
         slug: "module-5/",
         mechanic: "Игровой цикл",
         result: "Набор игровых элементов, встроенных в учебную логику.",
@@ -76,7 +71,6 @@ export const modules = [
     {
         id: 6,
         title: "Интерактивные лонгриды",
-        duration: "60 мин",
         slug: "module-6/",
         mechanic: "Interactive longread",
         result: "Лонгрид с точками выбора, вопросами и переходами.",
@@ -90,7 +84,6 @@ export const modules = [
     {
         id: 7,
         title: "Проверка готового проекта",
-        duration: "45-60 мин",
         slug: "module-7/",
         mechanic: "QA проекта",
         result: "Проверенный интерактивный урок, готовый к экспорту из проектного кабинета.",
@@ -103,9 +96,8 @@ export const modules = [
 ];
 
 export const moduleChecklist = [
-    "Теория занимает 10-20% времени модуля.",
     "Есть разбор готового примера.",
-    "Практика занимает не менее половины модуля.",
+    "Практика связана с результатом модуля.",
     "Результат модуля добавлен в сквозной проект.",
     "Пройден чек-лист самопроверки."
 ];

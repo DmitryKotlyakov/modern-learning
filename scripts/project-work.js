@@ -39,14 +39,14 @@ const scenarioChoiceTypes = {
 };
 
 const longreadBlockTypes = {
-    intro: { label: "Вступление", duration: 3 },
-    theory: { label: "Теория", duration: 6 },
-    example: { label: "Пример", duration: 4 },
-    question: { label: "Вопрос", duration: 3 },
-    hint: { label: "Подсказка", duration: 2 },
-    transition: { label: "Переход", duration: 1 },
-    task: { label: "Мини-задание", duration: 7 },
-    summary: { label: "Итог", duration: 3 }
+    intro: { label: "Вступление" },
+    theory: { label: "Теория" },
+    example: { label: "Пример" },
+    question: { label: "Вопрос" },
+    hint: { label: "Подсказка" },
+    transition: { label: "Переход" },
+    task: { label: "Мини-задание" },
+    summary: { label: "Итог" }
 };
 
 const projectAuditChecks = [
@@ -316,10 +316,6 @@ const normalizeLongreadBlock = (block = {}) => {
 const getLongreadBlocks = (values) => Array.isArray(values.longreadBlocks)
     ? values.longreadBlocks.slice(0, MAX_LONGREAD_BLOCKS).map(normalizeLongreadBlock)
     : [];
-
-const getLongreadBlockDuration = (block) => longreadBlockTypes[block.type]?.duration ?? 3;
-
-const getLongreadTotalDuration = (blocks) => blocks.reduce((sum, block) => sum + getLongreadBlockDuration(block), 0);
 
 const getLongreadValidationError = (blocks) => {
     const firstRepeatedTheoryIndex = blocks.findIndex((block, index) => block.type === "theory" && blocks[index - 1]?.type === "theory");
@@ -1663,7 +1659,7 @@ function renderLongreadBuilderForm(module, content) {
             <span class="tag">До ${MAX_LONGREAD_BLOCKS} блоков</span>
         </div>
         <h2>${escapeHtml(module.artifactTitle)}</h2>
-        <p>Соберите структуру интерактивного лонгрида. Каждый тип блока имеет фиксированное время прохождения, поэтому можно сразу проверить ритм чтения и плотность интерактивных остановок.</p>
+        <p>Соберите структуру интерактивного лонгрида. Разные типы блоков помогают проверить ритм чтения, плотность интерактивных остановок и переходы между смысловыми частями.</p>
         <form class="artifact-form longread-builder" data-artifact-form data-longread-builder-form>
             <label class="artifact-field" for="artifact-sourceMaterial">
                 <span>Исходный материал</span>
@@ -1673,12 +1669,12 @@ function renderLongreadBuilderForm(module, content) {
             <div class="quiz-builder__panel">
                 <div>
                     <h3>Блоки лонгрида</h3>
-                    <p data-longread-count>${blocks.length} из ${MAX_LONGREAD_BLOCKS} · ${getLongreadTotalDuration(blocks)} мин</p>
+                    <p data-longread-count>${blocks.length} из ${MAX_LONGREAD_BLOCKS}</p>
                 </div>
                 <div class="longread-builder__add">
                     ${Object.entries(longreadBlockTypes).map(([type, item]) => `
                         <button class="button button--secondary" type="button" data-add-longread-block="${type}">
-                            ${escapeHtml(item.label)} · ${item.duration} мин
+                            ${escapeHtml(item.label)}
                         </button>
                     `).join("")}
                 </div>
@@ -1706,7 +1702,7 @@ function renderLongreadBuilderForm(module, content) {
     const status = form.querySelector("[data-artifact-status]");
 
     const updateMeta = () => {
-        count.textContent = `${blocks.length} из ${MAX_LONGREAD_BLOCKS} · ${getLongreadTotalDuration(blocks)} мин`;
+        count.textContent = `${blocks.length} из ${MAX_LONGREAD_BLOCKS}`;
         const validationError = getLongreadValidationError(blocks);
         validation.textContent = validationError;
         validation.classList.toggle("is-error", Boolean(validationError));
@@ -1794,7 +1790,7 @@ function renderProjectAuditForm(module, content) {
             <span class="tag">Вместо сохранения</span>
         </div>
         <h2>${escapeHtml(module.artifactTitle)}</h2>
-        <p>Отметьте проверки после прохождения проекта. Кнопка ниже завершает модуль и помечает финальный проект как проверенный.</p>
+        <p>Отметьте проверки после ревизии проекта. Кнопка ниже завершает модуль и помечает финальный проект как проверенный.</p>
         <form class="artifact-form project-audit" data-artifact-form data-project-audit-form>
             <div class="checklist project-audit__checks">
                 ${projectAuditChecks.map((item, index) => `
@@ -1859,7 +1855,7 @@ function renderLongreadBlocks(container, blocks) {
             <article class="interaction-builder__exercise longread-builder__block" data-longread-block-index="${index}" data-longread-block-type="${escapeHtml(block.type)}">
                 <div class="quiz-builder__question-top">
                     <div>
-                        <p class="eyebrow">Блок ${index + 1} · ${escapeHtml(blockType.label)} · ${blockType.duration} мин</p>
+                        <p class="eyebrow">Блок ${index + 1} · ${escapeHtml(blockType.label)}</p>
                         <h3>${escapeHtml(block.title || blockType.label)}</h3>
                     </div>
                     <button class="button button--secondary" type="button" data-remove-longread-block="${index}">Удалить</button>
@@ -1885,7 +1881,7 @@ function renderLongreadBlocks(container, blocks) {
     }).join("") : `
         <div class="quiz-builder__empty">
             <h3>Пока нет блоков</h3>
-            <p>Добавьте вступление, теорию, пример, вопрос, подсказку, переход, мини-задание или итог. Начать удобно с 4-6 блоков на 20-30 минут чтения.</p>
+            <p>Добавьте вступление, теорию, пример, вопрос, подсказку, переход, мини-задание или итог. Начать удобно с короткой структуры на несколько смысловых блоков.</p>
         </div>
     `;
 }
@@ -2312,13 +2308,12 @@ function renderLongreadSummary(values) {
 
     return `
         <div class="quiz-bank-summary">
-            <p><b>Итоговое время:</b> ${getLongreadTotalDuration(filledBlocks)} мин</p>
             <ol>
                 ${filledBlocks.map((block, index) => {
                     const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
                     return `
                         <li>
-                            <strong>${escapeHtml(blockType.label)} · ${blockType.duration} мин: ${escapeHtml(block.title || "Без названия")}</strong>
+                            <strong>${escapeHtml(blockType.label)}: ${escapeHtml(block.title || "Без названия")}</strong>
                             <p>${escapeHtml(block.content || "Контент пока не заполнен").replaceAll("\n", "<br>")}</p>
                             <p><b>Действие:</b> ${escapeHtml(block.action || "Пока не указано").replaceAll("\n", "<br>")}</p>
                             <p><b>Фидбек / следующий шаг:</b> ${escapeHtml(block.feedback || "Пока не указан").replaceAll("\n", "<br>")}</p>
@@ -2345,7 +2340,7 @@ function renderExportLongread(values) {
                 </div>
                 <span class="export-game__tag" data-longread-counter>Блок 1 из ${filledBlocks.length}</span>
             </div>
-            <p class="export-longread__meta">Расчетное время чтения: <b>${getLongreadTotalDuration(filledBlocks)} мин</b></p>
+            <p class="export-longread__meta">Структура материала: <b>${filledBlocks.length} блоков</b></p>
             <div class="export-longread__progress" aria-hidden="true"><div data-longread-progress></div></div>
             <div class="export-longread__nav" aria-label="Навигация по блокам">
                 ${filledBlocks.map((block, index) => {
@@ -2354,7 +2349,7 @@ function renderExportLongread(values) {
                         <button type="button" data-longread-jump="${index}" ${index === 0 ? "class=\"is-active\"" : ""}>
                             <span>${index + 1}</span>
                             ${escapeHtml(blockType.label)}
-                            <small>${blockType.duration} мин</small>
+                            <small>${escapeHtml(block.title || "Без названия")}</small>
                         </button>
                     `;
                 }).join("")}
@@ -2363,7 +2358,7 @@ function renderExportLongread(values) {
                 const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
                 return `
                     <section class="export-interaction export-longread__block" data-longread-block data-block-index="${index}" ${index === 0 ? "" : "hidden"}>
-                        <p class="export-quiz__type">Блок ${index + 1} · ${escapeHtml(blockType.label)} · ${blockType.duration} мин</p>
+                        <p class="export-quiz__type">Блок ${index + 1} · ${escapeHtml(blockType.label)}</p>
                         <h3>${escapeHtml(block.title || blockType.label)}</h3>
                         <p>${escapeHtml(block.content || "Контент пока не заполнен").replaceAll("\n", "<br>")}</p>
                         ${block.action ? `

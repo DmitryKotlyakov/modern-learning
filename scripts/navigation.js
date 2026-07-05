@@ -47,7 +47,7 @@ export function renderModuleGrid() {
                 <h3>${module.title}</h3>
                 <p>${module.result}</p>
             </div>
-            <span class="module-card__meta">${module.duration} · ${module.mechanic}</span>
+            <span class="module-card__meta">${module.mechanic}</span>
         </a>
     `).join("");
 }
