@@ -11,6 +11,7 @@ const INTERACTION_BUILDER_MODULE_ID = 3;
 const SCENARIO_BUILDER_MODULE_ID = 4;
 const GAMIFICATION_BUILDER_MODULE_ID = 5;
 const LONGREAD_BUILDER_MODULE_ID = 6;
+const PROJECT_AUDIT_MODULE_ID = 7;
 const MAX_QUIZ_QUESTIONS = 10;
 const MAX_INTERACTION_EXERCISES = 5;
 const MAX_SCENARIO_NODES = 5;
@@ -46,6 +47,14 @@ const longreadBlockTypes = {
     task: { label: "Мини-задание", duration: 7 },
     summary: { label: "Итог", duration: 3 }
 };
+
+const projectAuditChecks = [
+    "Я прошел проект с начала до конца как новый слушатель.",
+    "Все механики связаны с материалом: квиз, упражнения, сценарий, геймификация и лонгрид не выглядят отдельными островами.",
+    "Фидбек помогает исправить ошибку или понять следующий шаг.",
+    "В уроке нет перегруза: сложные интерактивы чередуются с объяснением, примерами или короткими паузами.",
+    "Проект открывается на узкой ширине, сохраняется, импортируется и экспортируется из проектного кабинета."
+];
 
 const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -321,6 +330,19 @@ const getLongreadValidationError = (blocks) => {
     return "";
 };
 
+const normalizeProjectAudit = (values = {}) => {
+    const checks = Array.isArray(values.auditChecks)
+        ? values.auditChecks
+            .map((value) => Number(value))
+            .filter((value) => Number.isInteger(value) && value >= 0 && value < projectAuditChecks.length)
+        : [];
+
+    return {
+        auditChecks: [...new Set(checks)],
+        projectChecked: values.projectChecked === true || values.projectChecked === "true"
+    };
+};
+
 const getGameScores = (mechanics) => mechanics.reduce((result, mechanic) => ({
     cost: result.cost + Number(mechanic.cost || 0),
     filled: result.filled + (String(mechanic.title || mechanic.purpose).trim() ? 1 : 0)
@@ -390,6 +412,10 @@ const getFilledCount = (module, values) => {
         ].filter(Boolean).length;
     }
 
+    if (module.id === PROJECT_AUDIT_MODULE_ID) {
+        return normalizeProjectAudit(values).projectChecked ? 1 : 0;
+    }
+
     return module.artifactFields.filter((field) => String(values[field.id] ?? "").trim()).length;
 };
 
@@ -421,6 +447,9 @@ const collectProject = () => modules.map((module) => {
             sourceMaterial: storedValues.sourceMaterial ?? "",
             longreadBlocks: getLongreadBlocks(storedValues)
         };
+    }
+    if (module.id === PROJECT_AUDIT_MODULE_ID) {
+        values = normalizeProjectAudit(storedValues);
     }
     const filled = getFilledCount(module, values);
 
@@ -471,6 +500,10 @@ function normalizeImportedArtifact(module, values = {}) {
             sourceMaterial: String(values.sourceMaterial ?? ""),
             longreadBlocks: getLongreadBlocks(values)
         };
+    }
+
+    if (module.id === PROJECT_AUDIT_MODULE_ID) {
+        return normalizeProjectAudit(values);
     }
 
     return module.artifactFields.reduce((result, field) => {
@@ -540,6 +573,11 @@ function renderArtifactForm() {
 
     if (moduleId === LONGREAD_BUILDER_MODULE_ID) {
         renderLongreadBuilderForm(module, content);
+        return;
+    }
+
+    if (moduleId === PROJECT_AUDIT_MODULE_ID) {
+        renderProjectAuditForm(module, content);
         return;
     }
 
@@ -1723,6 +1761,74 @@ function renderLongreadBuilderForm(module, content) {
     });
 }
 
+function renderProjectAuditForm(module, content) {
+    const moduleId = module.id;
+    const saved = normalizeProjectAudit(getArtifact(moduleId));
+    const form = document.createElement("article");
+    form.className = "lesson-card artifact-card";
+    form.innerHTML = `
+        <div class="lesson-card__meta">
+            <span class="tag">Финальная проверка</span>
+            <span class="tag">Вместо сохранения</span>
+        </div>
+        <h2>${escapeHtml(module.artifactTitle)}</h2>
+        <p>Отметьте проверки после прохождения проекта. Кнопка ниже завершает модуль и помечает финальный проект как проверенный.</p>
+        <form class="artifact-form project-audit" data-artifact-form data-project-audit-form>
+            <div class="checklist project-audit__checks">
+                ${projectAuditChecks.map((item, index) => `
+                    <label>
+                        <input type="checkbox" value="${index}" data-audit-check ${saved.auditChecks.includes(index) ? "checked" : ""}>
+                        <span>${escapeHtml(item)}</span>
+                    </label>
+                `).join("")}
+            </div>
+            <div class="artifact-actions">
+                <button class="button button--primary" type="submit" data-project-audit-submit>${saved.projectChecked ? "Проект проверен" : "Проект проверен"}</button>
+                <a class="button button--secondary" href="../project/">Открыть проект</a>
+                <span class="artifact-status" data-artifact-status aria-live="polite">${saved.projectChecked ? "Проверка уже подтверждена" : ""}</span>
+            </div>
+        </form>
+    `;
+
+    content.append(form);
+
+    const auditForm = form.querySelector("[data-project-audit-form]");
+    const status = form.querySelector("[data-artifact-status]");
+
+    const collect = (projectChecked = normalizeProjectAudit(getArtifact(moduleId)).projectChecked) => ({
+        auditChecks: [...auditForm.querySelectorAll("[data-audit-check]:checked")].map((input) => Number(input.value)),
+        projectChecked
+    });
+
+    auditForm.addEventListener("change", () => {
+        setArtifact(moduleId, collect(false));
+        localStorage.removeItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`);
+        status.textContent = "Черновик проверки сохранен";
+        status.classList.remove("is-error");
+        renderSiteProgress();
+        renderModuleMenu();
+    });
+
+    auditForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const values = collect(false);
+        if (values.auditChecks.length < projectAuditChecks.length) {
+            setArtifact(moduleId, values);
+            status.textContent = "Отметьте все пункты проверки перед подтверждением";
+            status.classList.add("is-error");
+            return;
+        }
+
+        values.projectChecked = true;
+        setArtifact(moduleId, values);
+        localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${moduleId}`, "true");
+        status.textContent = "Проект проверен";
+        status.classList.remove("is-error");
+        renderSiteProgress();
+        renderModuleMenu();
+    });
+}
+
 function renderLongreadBlocks(container, blocks) {
     container.innerHTML = blocks.length ? blocks.map((block, index) => {
         const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
@@ -2261,6 +2367,21 @@ function renderExportLongread(values) {
     `;
 }
 
+function renderProjectAuditSummary(values) {
+    const audit = normalizeProjectAudit(values);
+
+    return `
+        <div class="quiz-bank-summary">
+            <p><b>Статус:</b> ${audit.projectChecked ? "проект проверен" : "проверка не подтверждена"}</p>
+            <ul class="bullets">
+                ${projectAuditChecks.map((item, index) => `
+                    <li>${audit.auditChecks.includes(index) ? "✓ " : ""}${escapeHtml(item)}</li>
+                `).join("")}
+            </ul>
+        </div>
+    `;
+}
+
 function renderScenarioSummary(values) {
     const nodes = getScenarioNodes(values);
 
@@ -2501,6 +2622,15 @@ function renderProjectFields(module, values) {
         `;
     }
 
+    if (module.id === PROJECT_AUDIT_MODULE_ID) {
+        return `
+            <div class="project-field">
+                <dt>Финальная проверка</dt>
+                <dd>${renderProjectAuditSummary(values)}</dd>
+            </div>
+        `;
+    }
+
     return module.artifactFields.map((field) => {
         const value = String(values[field.id] ?? "").trim();
         return `
@@ -2547,6 +2677,10 @@ function renderExportFields(module, values) {
             <section><h3>Исходный материал</h3><p>${escapeHtml(String(values.sourceMaterial ?? "").trim() || "Пока не заполнено").replaceAll("\n", "<br>")}</p></section>
             <section><h3>Интерактивный лонгрид</h3>${renderExportLongread(values)}</section>
         `;
+    }
+
+    if (module.id === PROJECT_AUDIT_MODULE_ID) {
+        return `<section><h3>Финальная проверка</h3>${renderProjectAuditSummary(values)}</section>`;
     }
 
     return module.artifactFields.map((field) => {

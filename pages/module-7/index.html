@@ -1,12 +1,75 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Модуль 7 · Сборка и упаковка курса</title><link rel="stylesheet" href="../../styles/style.css"><script type="module" src="../../scripts/main.js" defer></script></head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 7 · Проверка готового проекта</title>
+    <link rel="stylesheet" href="../../styles/style.css">
+    <script type="module" src="../../scripts/main.js" defer></script>
+</head>
 <body data-page="module" data-module="7">
-<header class="site-header"><a class="brand" href="../../"><span class="brand__mark">LM</span><span class="brand__text">Механики вовлечения</span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button><nav class="site-nav" id="site-nav" aria-label="Основная навигация"><a href="../../" data-nav-link>Обзор</a><a href="../module-1/" data-nav-link>Модули</a><a href="../project/" data-nav-link>Проект</a></nav></header>
-<main><section class="page-hero"><p class="eyebrow">Модуль 7 · 60-90 мин</p><h1>Сборка и упаковка курса</h1><p>Модуль связывает отдельные интерактивные элементы в цельный урок и готовит материал к публикации.</p><div class="page-hero__meta"><span class="tag">Сборка</span><span class="tag">Экспорт</span><span class="tag">Публикация</span></div></section>
-<section class="content-layout"><aside class="course-sidebar"><div class="sidebar-title">Модули курса</div><nav class="module-menu" data-module-menu></nav></aside><div class="module-content">
-<div class="module-objectives"><article><h3>Цель</h3><p>Собрать элементы в последовательный урок.</p></article><article><h3>Практика</h3><p>Проверить навигацию, экспорт и встраивание.</p></article><article><h3>Результат</h3><p>Пакет урока, готовый к публикации.</p></article></div>
-<article class="lesson-card"><h2>Материал модуля</h2><ul class="bullets"><li>Логика упаковки: вступление, интерактив, закрепление, финал.</li><li>Проверка ссылок, переходов, обратной связи и состояния завершения.</li><li>Экспорт одностраничного сайта, JSON проекта и варианты размещения.</li></ul></article>
-<article class="callout"><h2>Практическое задание</h2><p>Объедините готовые упражнения в один урок, экспортируйте пакет и проверьте открытие в целевой среде.</p></article>
-<article class="lesson-card"><h2>Чек-лист самопроверки</h2><div class="progress-meter"><div class="progress-meter__bar" data-progress-bar></div></div><p>Готово: <span data-progress-text>0 из 5</span></p><div class="checklist" data-checklist></div></article>
-</div></section></main></body></html>
+<header class="site-header">
+    <a class="brand" href="../../"><span class="brand__mark">LM</span><span class="brand__text">Механики вовлечения</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Меню</button>
+    <nav class="site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="../../" data-nav-link>Обзор</a>
+        <a href="../module-1/" data-nav-link>Модули</a>
+        <a href="../project/" data-nav-link>Проект</a>
+    </nav>
+</header>
+
+<main>
+    <section class="page-hero">
+        <p class="eyebrow">Модуль 7 · 45-60 мин</p>
+        <h1>Проверка готового проекта</h1>
+        <p>Финальный модуль нужен не для создания новой механики, а для проверки уже собранного интерактивного урока. Студент проходит проект глазами пользователя, находит разрывы между артефактами и подтверждает, что урок можно отдавать на просмотр или публикацию.</p>
+        <div class="page-hero__meta">
+            <span class="tag">QA</span>
+            <span class="tag">Ревизия</span>
+            <span class="tag">Финальная проверка</span>
+        </div>
+    </section>
+
+    <section class="content-layout">
+        <aside class="course-sidebar">
+            <div class="sidebar-title">Модули курса</div>
+            <nav class="module-menu" data-module-menu aria-label="Навигация по модулям"></nav>
+        </aside>
+
+        <div class="module-content">
+            <div class="module-objectives">
+                <article>
+                    <h3>Цель</h3>
+                    <p>Проверить, что созданные в предыдущих модулях артефакты работают как один цельный учебный опыт.</p>
+                </article>
+                <article>
+                    <h3>Практика</h3>
+                    <p>Пройти проект как слушатель, отметить проблемные места и подтвердить готовность урока.</p>
+                </article>
+                <article>
+                    <h3>Результат</h3>
+                    <p>Проверенный проект, который можно экспортировать из проектного кабинета.</p>
+                </article>
+            </div>
+
+            <article class="lesson-card">
+                <h2>Зачем нужна финальная проверка</h2>
+                <p>Когда автор долго собирает урок по частям, он начинает видеть не сам курс, а собственный замысел. Поэтому в финале важно пройти материал как новый слушатель: без знания внутренних решений, черновиков и причин, по которым механики оказались именно такими.</p>
+                <p>Проверка не повторяет проектирование. Она ищет разрывы: квиз спрашивает то, что не было объяснено; сценарий требует навыка, который не тренировался; фидбек сообщает результат, но не помогает исправить ошибку; геймификация награждает действие, не связанное с учебной целью.</p>
+            </article>
+
+            <article class="lesson-card">
+                <h2>Что проверять в готовом уроке</h2>
+                <ul class="bullets">
+                    <li><strong>Маршрут:</strong> понятно ли, где начало, что делать дальше и где урок завершен.</li>
+                    <li><strong>Связность:</strong> каждая механика опирается на предыдущий материал и ведет к следующему шагу.</li>
+                    <li><strong>Фидбек:</strong> ошибки объясняются, а не просто помечаются как неверные.</li>
+                    <li><strong>Нагрузка:</strong> нет длинных пассивных участков и нет нескольких сложных интерактивов подряд.</li>
+                    <li><strong>Устойчивость:</strong> урок можно пройти на узкой ширине, повторно открыть и экспортировать из проектного кабинета.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

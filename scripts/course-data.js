@@ -89,17 +89,15 @@ export const modules = [
     },
     {
         id: 7,
-        title: "Сборка и упаковка курса",
-        duration: "60-90 мин",
+        title: "Проверка готового проекта",
+        duration: "45-60 мин",
         slug: "module-7/",
-        mechanic: "Course assembly",
-        result: "Собранный урок с навигацией, экспортом и проверкой встраивания.",
-        practice: "Объединить механики в цельный фрагмент и подготовить публикацию.",
-        artifactTitle: "Структура готового урока",
+        mechanic: "QA проекта",
+        result: "Проверенный интерактивный урок, готовый к экспорту из проектного кабинета.",
+        practice: "Пройти проект как слушатель, проверить связность, фидбек, нагрузку и устойчивость.",
+        artifactTitle: "Финальная проверка проекта",
         artifactFields: [
-            { id: "lessonFlow", label: "Порядок блоков", type: "textarea", placeholder: "Вступление, теория, квиз, упражнение, сценарий, финал..." },
-            { id: "navigation", label: "Навигация и переходы", type: "textarea", placeholder: "Как слушатель понимает, где он находится и что делать дальше?" },
-            { id: "publishingPlan", label: "План публикации", type: "textarea", placeholder: "LMS, ссылка, iframe, самостоятельная страница..." }
+            { id: "projectChecked", label: "Проект проверен", type: "checkbox", placeholder: "Отметьте финальную проверку проекта." }
         ]
     }
 ];
