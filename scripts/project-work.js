@@ -1985,7 +1985,7 @@ function renderQuizBankSummary(values) {
         <ol class="quiz-bank-summary">
             ${questions.map((question, index) => `
                 <li>
-                    <strong>${index + 1}. ${escapeHtml(quizTypes[question.type] || question.type)}</strong>
+                    <strong>${escapeHtml(quizTypes[question.type] || question.type)}</strong>
                     <p>${escapeHtml(question.prompt || "Вопрос пока не заполнен")}</p>
                     <p><b>Правильный ответ:</b> ${escapeHtml(getQuestionCorrectAnswer(question))}</p>
                     <p><b>Подсказка:</b> ${question.hint ? escapeHtml(question.hint) : "<span>Пока не указана</span>"}</p>
