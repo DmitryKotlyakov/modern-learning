@@ -435,6 +435,76 @@ const collectProject = () => modules.map((module) => {
     };
 });
 
+function normalizeImportedArtifact(module, values = {}) {
+    if (module.id === QUIZ_BANK_MODULE_ID) {
+        return {
+            quizGoal: String(values.quizGoal ?? ""),
+            questions: getQuizQuestions(values)
+        };
+    }
+
+    if (module.id === INTERACTION_BUILDER_MODULE_ID) {
+        return {
+            exerciseGoal: String(values.exerciseGoal ?? ""),
+            exercises: getInteractionExercises(values)
+        };
+    }
+
+    if (module.id === SCENARIO_BUILDER_MODULE_ID) {
+        return {
+            situation: String(values.situation ?? ""),
+            scenarioNodes: getScenarioNodes(values)
+        };
+    }
+
+    if (module.id === GAMIFICATION_BUILDER_MODULE_ID) {
+        return {
+            targetBehavior: String(values.targetBehavior ?? ""),
+            gameMechanics: getGameMechanics(values),
+            gameMetrics: getGameMetrics(values),
+            riskCheck: String(values.riskCheck ?? "")
+        };
+    }
+
+    if (module.id === LONGREAD_BUILDER_MODULE_ID) {
+        return {
+            sourceMaterial: String(values.sourceMaterial ?? ""),
+            longreadBlocks: getLongreadBlocks(values)
+        };
+    }
+
+    return module.artifactFields.reduce((result, field) => {
+        result[field.id] = String(values[field.id] ?? "");
+        return result;
+    }, {});
+}
+
+function importProjectData(data) {
+    if (!data || !Array.isArray(data.modules)) {
+        throw new Error("Файл не похож на JSON проекта.");
+    }
+
+    let importedCount = 0;
+
+    modules.forEach((module) => {
+        const importedModule = data.modules.find((item) => Number(item.moduleId ?? item.id) === module.id);
+        if (!importedModule) return;
+
+        const values = normalizeImportedArtifact(module, importedModule.values || {});
+        const filled = getFilledCount(module, values);
+
+        setArtifact(module.id, values);
+        if (filled > 0) {
+            localStorage.setItem(`${ARTIFACT_DONE_PREFIX}${module.id}`, "true");
+            importedCount += 1;
+        } else {
+            localStorage.removeItem(`${ARTIFACT_DONE_PREFIX}${module.id}`);
+        }
+    });
+
+    return importedCount;
+}
+
 export function initProjectWorkspace() {
     renderArtifactForm();
     renderProjectDashboard();
@@ -2526,6 +2596,9 @@ function renderProjectDashboard() {
         <div class="project-export" data-project-export>
             <button class="button button--primary" type="button" data-export-html>Скачать одностраничный HTML</button>
             <button class="button button--secondary" type="button" data-export-json>Скачать JSON проекта</button>
+            <button class="button button--secondary" type="button" data-import-json>Импортировать JSON</button>
+            <input type="file" accept="application/json,.json" data-import-json-input hidden>
+            <span class="artifact-status" data-import-status aria-live="polite"></span>
         </div>
         <div class="project-artifacts">${cards}</div>
     `;
@@ -2533,6 +2606,30 @@ function renderProjectDashboard() {
     summary.querySelector("[data-export-html]").addEventListener("click", exportOnePageHtml);
     summary.querySelector("[data-export-json]").addEventListener("click", () => {
         downloadFile("interactive-course-project.json", JSON.stringify({ modules: collectProject() }, null, 2), "application/json");
+    });
+
+    const importInput = summary.querySelector("[data-import-json-input]");
+    const importStatus = summary.querySelector("[data-import-status]");
+    summary.querySelector("[data-import-json]").addEventListener("click", () => {
+        importInput.value = "";
+        importInput.click();
+    });
+    importInput.addEventListener("change", async () => {
+        const file = importInput.files?.[0];
+        if (!file) return;
+
+        try {
+            const data = JSON.parse(await file.text());
+            const importedCount = importProjectData(data);
+            renderSiteProgress();
+            renderModuleMenu();
+            renderProjectDashboard();
+            const newImportStatus = document.querySelector("[data-project-summary] [data-import-status]");
+            if (newImportStatus) newImportStatus.textContent = `Импортировано модулей: ${importedCount}`;
+        } catch (error) {
+            importStatus.textContent = error?.message || "Не удалось импортировать JSON";
+            importStatus.classList.add("is-error");
+        }
     });
 }
 
