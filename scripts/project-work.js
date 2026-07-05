@@ -2793,7 +2793,7 @@ function bindProjectActions(root) {
 }
 
 function exportOnePageHtml() {
-    const project = collectProject();
+    const project = collectProject().filter((item) => item.moduleId !== PROJECT_AUDIT_MODULE_ID);
     const sections = project.map((item) => {
         const module = modules.find((entry) => entry.id === item.moduleId);
         const fields = renderExportFields(module, item.values);
