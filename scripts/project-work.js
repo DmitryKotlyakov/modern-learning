@@ -12,6 +12,7 @@ const SCENARIO_BUILDER_MODULE_ID = 4;
 const GAMIFICATION_BUILDER_MODULE_ID = 5;
 const LONGREAD_BUILDER_MODULE_ID = 6;
 const PROJECT_AUDIT_MODULE_ID = 7;
+const PROJECT_ANCHOR_ID = "module-project";
 const MAX_QUIZ_QUESTIONS = 10;
 const MAX_INTERACTION_EXERCISES = 5;
 const MAX_SCENARIO_NODES = 5;
@@ -598,6 +599,7 @@ function renderArtifactForm() {
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Сквозной проект</span>
@@ -617,6 +619,7 @@ function renderArtifactForm() {
 
     const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
     content.insertBefore(form, checklist || null);
+    scrollToProjectAnchor(form);
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const status = form.querySelector("[data-artifact-status]");
@@ -639,6 +642,14 @@ function renderArtifactForm() {
     });
 }
 
+function scrollToProjectAnchor(element) {
+    if (window.location.hash !== `#${PROJECT_ANCHOR_ID}`) return;
+
+    window.requestAnimationFrame(() => {
+        element.scrollIntoView({ block: "start" });
+    });
+}
+
 function renderScenarioBuilderForm(module, content) {
     const moduleId = module.id;
     const saved = getArtifact(moduleId);
@@ -646,6 +657,7 @@ function renderScenarioBuilderForm(module, content) {
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Сквозной проект</span>
@@ -689,6 +701,7 @@ function renderScenarioBuilderForm(module, content) {
 
     const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
     content.insertBefore(form, checklist || null);
+    scrollToProjectAnchor(form);
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-scenario-list]");
@@ -868,6 +881,7 @@ function renderGamificationBuilderForm(module, content) {
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Сквозной проект</span>
@@ -935,6 +949,7 @@ function renderGamificationBuilderForm(module, content) {
 
     const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
     content.insertBefore(form, checklist || null);
+    scrollToProjectAnchor(form);
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-game-mechanics-list]");
@@ -1223,6 +1238,7 @@ function renderQuizBankForm(module, content) {
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Сквозной проект</span>
@@ -1260,6 +1276,7 @@ function renderQuizBankForm(module, content) {
 
     const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
     content.insertBefore(form, checklist || null);
+    scrollToProjectAnchor(form);
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-quiz-bank-list]");
@@ -1516,6 +1533,7 @@ function renderInteractionBuilderForm(module, content) {
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Сквозной проект</span>
@@ -1553,6 +1571,7 @@ function renderInteractionBuilderForm(module, content) {
 
     const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
     content.insertBefore(form, checklist || null);
+    scrollToProjectAnchor(form);
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-interaction-list]");
@@ -1637,6 +1656,7 @@ function renderLongreadBuilderForm(module, content) {
 
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Сквозной проект</span>
@@ -1677,6 +1697,7 @@ function renderLongreadBuilderForm(module, content) {
 
     const checklist = content.querySelector("[data-checklist]")?.closest(".lesson-card");
     content.insertBefore(form, checklist || null);
+    scrollToProjectAnchor(form);
 
     const artifactForm = form.querySelector("[data-artifact-form]");
     const list = form.querySelector("[data-longread-list]");
@@ -1766,6 +1787,7 @@ function renderProjectAuditForm(module, content) {
     const saved = normalizeProjectAudit(getArtifact(moduleId));
     const form = document.createElement("article");
     form.className = "lesson-card artifact-card";
+    form.id = PROJECT_ANCHOR_ID;
     form.innerHTML = `
         <div class="lesson-card__meta">
             <span class="tag">Финальная проверка</span>
@@ -1791,6 +1813,7 @@ function renderProjectAuditForm(module, content) {
     `;
 
     content.append(form);
+    scrollToProjectAnchor(form);
 
     const auditForm = form.querySelector("[data-project-audit-form]");
     const status = form.querySelector("[data-artifact-status]");
@@ -2710,7 +2733,7 @@ function renderProjectDashboard() {
                         <p class="eyebrow">Модуль ${item.moduleId} · ${escapeHtml(item.mechanic)}</p>
                         <h3>${escapeHtml(item.artifactTitle)}</h3>
                     </div>
-                    <a class="button button--secondary" href="../${module.slug}">Редактировать</a>
+                    <a class="button button--secondary" href="../${module.slug}#${PROJECT_ANCHOR_ID}">Редактировать</a>
                 </div>
                 <dl>${fields}</dl>
             </article>
