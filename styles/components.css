@@ -1153,6 +1153,43 @@
     color: var(--color-muted);
 }
 
+.project-artifact ul,
+.project-artifact ol,
+.project-artifact .bullets,
+.project-artifact .quiz-bank-summary ol,
+.project-artifact .quiz-bank-summary ul {
+    padding-left: 1.35rem;
+}
+
+.project-artifact .bullets {
+    list-style: disc;
+}
+
+.project-artifact .bullets li {
+    padding-left: 0.25rem;
+}
+
+.project-artifact .bullets li::before {
+    content: none;
+}
+
+.project-artifact li {
+    overflow-wrap: anywhere;
+}
+
+body[data-page="project"] .lesson-card .bullets {
+    padding-left: 1.35rem;
+    list-style: disc;
+}
+
+body[data-page="project"] .lesson-card .bullets li {
+    padding-left: 0.25rem;
+}
+
+body[data-page="project"] .lesson-card .bullets li::before {
+    content: none;
+}
+
 .project-field dd span {
     color: #89918b;
 }
