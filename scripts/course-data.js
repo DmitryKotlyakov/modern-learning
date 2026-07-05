@@ -101,21 +101,6 @@ export const modules = [
             { id: "navigation", label: "Навигация и переходы", type: "textarea", placeholder: "Как слушатель понимает, где он находится и что делать дальше?" },
             { id: "publishingPlan", label: "План публикации", type: "textarea", placeholder: "LMS, ссылка, iframe, самостоятельная страница..." }
         ]
-    },
-    {
-        id: 8,
-        title: "Финальный проект",
-        duration: "90-120 мин",
-        slug: "module-8/",
-        mechanic: "Защита проекта",
-        result: "Интерактивный урок минимум с тремя механиками курса.",
-        practice: "Доработать проект, пройти чек-лист качества и подготовить ссылку или пакет для LMS.",
-        artifactTitle: "Финальная проверка",
-        artifactFields: [
-            { id: "selectedMechanics", label: "Какие 3+ механики вошли в урок", type: "textarea", placeholder: "Квиз, drag-and-drop, сценарий..." },
-            { id: "qualityNotes", label: "Что проверено перед сдачей", type: "textarea", placeholder: "Цель, обратная связь, навигация, экспорт, доступность..." },
-            { id: "deliveryLink", label: "Ссылка или способ сдачи", type: "text", placeholder: "URL, название файла или место публикации" }
-        ]
     }
 ];
 
