@@ -2076,7 +2076,7 @@ function renderInteractionSummary(values) {
         <ol class="quiz-bank-summary">
             ${exercises.map((exercise, index) => `
                 <li>
-                    <strong>${index + 1}. ${escapeHtml(interactionTypes[exercise.type])}: ${escapeHtml(exercise.title || "Без названия")}</strong>
+                    <strong>${escapeHtml(interactionTypes[exercise.type])}: ${escapeHtml(exercise.title || "Без названия")}</strong>
                     <p>${escapeHtml(exercise.instruction || "Инструкция пока не заполнена")}</p>
                     <p><b>${exercise.type === "ranking" ? "Правильный порядок" : "Зоны и распределение"}:</b> ${escapeHtml(exercise.targetStructure || "Пока не указано").replaceAll("\n", "<br>")}</p>
                     <p><b>Фидбек:</b> ${exercise.feedback ? escapeHtml(exercise.feedback) : "<span>Пока не указан</span>"}</p>
@@ -2119,7 +2119,7 @@ function renderLongreadSummary(values) {
                     const blockType = longreadBlockTypes[block.type] || longreadBlockTypes.theory;
                     return `
                         <li>
-                            <strong>${index + 1}. ${escapeHtml(blockType.label)} · ${blockType.duration} мин: ${escapeHtml(block.title || "Без названия")}</strong>
+                            <strong>${escapeHtml(blockType.label)} · ${blockType.duration} мин: ${escapeHtml(block.title || "Без названия")}</strong>
                             <p>${escapeHtml(block.content || "Контент пока не заполнен").replaceAll("\n", "<br>")}</p>
                             <p><b>Действие:</b> ${escapeHtml(block.action || "Пока не указано").replaceAll("\n", "<br>")}</p>
                             <p><b>Фидбек / следующий шаг:</b> ${escapeHtml(block.feedback || "Пока не указан").replaceAll("\n", "<br>")}</p>
@@ -2200,7 +2200,7 @@ function renderScenarioSummary(values) {
         <ol class="quiz-bank-summary">
             ${nodes.map((node, index) => `
                 <li>
-                    <strong>${index + 1}. ${escapeHtml(node.title || "Узел без названия")}</strong>
+                    <strong>${escapeHtml(node.title || "Узел без названия")}</strong>
                     <p>${escapeHtml(node.scene || "Сцена пока не описана")}</p>
                     <p><b>Вопрос:</b> ${escapeHtml(node.question || "Пока не указан")}</p>
                     <ul class="bullets">
