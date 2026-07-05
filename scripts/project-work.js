@@ -2727,43 +2727,68 @@ function renderProjectDashboard() {
             <p>Здесь собираются все практические артефакты курса. Заполняйте формы в модулях, а эта страница будет становиться финальной картой вашего интерактивного урока.</p>
             <div class="progress-meter"><div class="progress-meter__bar" style="width: ${percent}%"></div></div>
         </article>
-        <div class="project-export" data-project-export>
+        ${renderProjectActions()}
+        <div class="project-artifacts">${cards}</div>
+    `;
+
+    bindProjectActions(summary);
+    hydrateStaticProjectActions();
+}
+
+function renderProjectActions() {
+    return `
+        <div class="project-export" data-project-actions>
             <button class="button button--primary" type="button" data-export-html>Скачать одностраничный HTML</button>
             <button class="button button--secondary" type="button" data-export-json>Скачать JSON проекта</button>
             <button class="button button--secondary" type="button" data-import-json>Импортировать JSON</button>
             <input type="file" accept="application/json,.json" data-import-json-input hidden>
             <span class="artifact-status" data-import-status aria-live="polite"></span>
         </div>
-        <div class="project-artifacts">${cards}</div>
     `;
+}
 
-    summary.querySelector("[data-export-html]").addEventListener("click", exportOnePageHtml);
-    summary.querySelector("[data-export-json]").addEventListener("click", () => {
-        downloadFile("interactive-course-project.json", JSON.stringify({ modules: collectProject() }, null, 2), "application/json");
+function hydrateStaticProjectActions() {
+    document.querySelectorAll("[data-project-actions]:empty").forEach((container) => {
+        container.outerHTML = renderProjectActions();
     });
+    bindProjectActions(document);
+}
 
-    const importInput = summary.querySelector("[data-import-json-input]");
-    const importStatus = summary.querySelector("[data-import-status]");
-    summary.querySelector("[data-import-json]").addEventListener("click", () => {
-        importInput.value = "";
-        importInput.click();
-    });
-    importInput.addEventListener("change", async () => {
-        const file = importInput.files?.[0];
-        if (!file) return;
+function bindProjectActions(root) {
+    root.querySelectorAll("[data-project-actions]").forEach((actions) => {
+        if (actions.dataset.actionsBound === "true") return;
+        actions.dataset.actionsBound = "true";
 
-        try {
-            const data = JSON.parse(await file.text());
-            const importedCount = importProjectData(data);
-            renderSiteProgress();
-            renderModuleMenu();
-            renderProjectDashboard();
-            const newImportStatus = document.querySelector("[data-project-summary] [data-import-status]");
-            if (newImportStatus) newImportStatus.textContent = `Импортировано модулей: ${importedCount}`;
-        } catch (error) {
-            importStatus.textContent = error?.message || "Не удалось импортировать JSON";
-            importStatus.classList.add("is-error");
-        }
+        actions.querySelector("[data-export-html]").addEventListener("click", exportOnePageHtml);
+        actions.querySelector("[data-export-json]").addEventListener("click", () => {
+            downloadFile("interactive-course-project.json", JSON.stringify({ modules: collectProject() }, null, 2), "application/json");
+        });
+
+        const importInput = actions.querySelector("[data-import-json-input]");
+        const importStatus = actions.querySelector("[data-import-status]");
+        actions.querySelector("[data-import-json]").addEventListener("click", () => {
+            importInput.value = "";
+            importInput.click();
+        });
+        importInput.addEventListener("change", async () => {
+            const file = importInput.files?.[0];
+            if (!file) return;
+
+            try {
+                const data = JSON.parse(await file.text());
+                const importedCount = importProjectData(data);
+                renderSiteProgress();
+                renderModuleMenu();
+                renderProjectDashboard();
+                document.querySelectorAll("[data-import-status]").forEach((status) => {
+                    status.textContent = `Импортировано модулей: ${importedCount}`;
+                    status.classList.remove("is-error");
+                });
+            } catch (error) {
+                importStatus.textContent = error?.message || "Не удалось импортировать JSON";
+                importStatus.classList.add("is-error");
+            }
+        });
     });
 }
 
