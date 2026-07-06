@@ -3,16 +3,18 @@ import { isArtifactComplete, isModuleVisited } from "./site-progress.js";
 
 const getBasePath = () => (window.location.pathname.includes("/pages/") ? "../" : "pages/");
 
-const getCurrentRoute = () => {
-    const path = window.location.pathname.replace(/\/$/, "");
-    return path.split("/").pop() || "index";
+const normalizeRoute = (value) => {
+    const cleanValue = value.replace(/[?#].*$/, "").replace(/\/$/, "").replace(/\.html$/, "");
+    const route = cleanValue.split("/").pop();
+    return !route || route === "." ? "index" : route;
 };
 
-const getLinkRoute = (href) => {
-    const cleanHref = href.replace(/\/$/, "").replace(/\.html$/, "");
-    if (!cleanHref || cleanHref === ".") return "index";
-    return cleanHref.split("/").pop() || "index";
+const getCurrentRoute = () => {
+    if (document.body?.dataset.page === "home") return "index";
+    return normalizeRoute(window.location.pathname);
 };
+
+const getLinkRoute = (href) => normalizeRoute(href);
 
 export function initNavigation() {
     const toggle = document.querySelector(".nav-toggle");
