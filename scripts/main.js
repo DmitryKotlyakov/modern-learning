@@ -6,6 +6,7 @@ import { initSiteProgress } from "./site-progress.js";
 import { initSortingTasks } from "./sorting-task.js";
 import { initBranchingScenarios } from "./branching-scenario.js";
 import { initGamificationChallenges } from "./gamification-challenge.js";
+import { initTermDefinitions } from "./terms.js";
 
 initNavigation();
 renderModuleGrid();
@@ -17,3 +18,4 @@ initQuizExamples();
 initSortingTasks();
 initBranchingScenarios();
 initGamificationChallenges();
+initTermDefinitions();
