@@ -336,6 +336,9 @@ const normalizeProjectAudit = (values = {}) => {
 
     return {
         auditChecks: [...new Set(checks)],
+        conclusionTitle: String(values.conclusionTitle ?? ""),
+        conclusionText: String(values.conclusionText ?? ""),
+        conclusionNextStep: String(values.conclusionNextStep ?? ""),
         projectChecked: values.projectChecked === true || values.projectChecked === "true"
     };
 };
@@ -1790,8 +1793,20 @@ function renderProjectAuditForm(module, content) {
             <span class="tag">Вместо сохранения</span>
         </div>
         <h2>${escapeHtml(module.artifactTitle)}</h2>
-        <p>Отметьте проверки после ревизии проекта. Кнопка ниже завершает модуль и помечает финальный проект как проверенный.</p>
+        <p>Сначала заполните текст заключения для экспортируемого сайта, затем отметьте проверки после ревизии проекта. Кнопка ниже завершает модуль и помечает финальный проект как проверенный.</p>
         <form class="artifact-form project-audit" data-artifact-form data-project-audit-form>
+            <label class="artifact-field">
+                <span>Заголовок заключения</span>
+                <input name="conclusionTitle" type="text" value="${escapeHtml(saved.conclusionTitle)}" placeholder="Например: Проект собран в интерактивный урок">
+            </label>
+            <label class="artifact-field">
+                <span>Текст заключения</span>
+                <textarea name="conclusionText" rows="4" placeholder="Кратко опишите, что получилось в итоговом уроке и как его стоит проверять дальше">${escapeHtml(saved.conclusionText)}</textarea>
+            </label>
+            <label class="artifact-field">
+                <span>Следующий шаг</span>
+                <textarea name="conclusionNextStep" rows="3" placeholder="Например: Перед публикацией пройдите урок на узком экране и проверьте все интерактивные блоки">${escapeHtml(saved.conclusionNextStep)}</textarea>
+            </label>
             <div class="checklist project-audit__checks">
                 ${projectAuditChecks.map((item, index) => `
                     <label>
@@ -1816,6 +1831,9 @@ function renderProjectAuditForm(module, content) {
 
     const collect = (projectChecked = normalizeProjectAudit(getArtifact(moduleId)).projectChecked) => ({
         auditChecks: [...auditForm.querySelectorAll("[data-audit-check]:checked")].map((input) => Number(input.value)),
+        conclusionTitle: auditForm.elements.conclusionTitle.value,
+        conclusionText: auditForm.elements.conclusionText.value,
+        conclusionNextStep: auditForm.elements.conclusionNextStep.value,
         projectChecked
     });
 
@@ -2387,10 +2405,19 @@ function renderExportLongread(values) {
 
 function renderProjectAuditSummary(values) {
     const audit = normalizeProjectAudit(values);
+    const conclusionTitle = audit.conclusionTitle.trim();
+    const conclusionText = audit.conclusionText.trim();
+    const conclusionNextStep = audit.conclusionNextStep.trim();
+    const hasConclusion = conclusionTitle || conclusionText || conclusionNextStep;
 
     return `
         <div class="quiz-bank-summary">
             <p><b>Статус:</b> ${audit.projectChecked ? "проект проверен" : "проверка не подтверждена"}</p>
+            ${hasConclusion ? `
+                <p><b>Заголовок заключения:</b> ${escapeHtml(conclusionTitle || "Не указан")}</p>
+                <p><b>Текст заключения:</b> ${escapeHtml(conclusionText || "Не указан").replaceAll("\n", "<br>")}</p>
+                <p><b>Следующий шаг:</b> ${escapeHtml(conclusionNextStep || "Не указан").replaceAll("\n", "<br>")}</p>
+            ` : ""}
             <ul class="bullets">
                 ${projectAuditChecks.map((item, index) => `
                     <li>${audit.auditChecks.includes(index) ? "✓ " : ""}${escapeHtml(item)}</li>
@@ -3547,16 +3574,19 @@ function renderExportConclusion() {
     const status = audit.projectChecked
         ? "Финальная проверка подтверждена в модуле 7."
         : "Финальная проверка пока не подтверждена в модуле 7.";
+    const title = audit.conclusionTitle.trim() || "Проект собран в интерактивный урок";
+    const text = audit.conclusionText.trim() || "Используйте эту страницу как цельную карту урока: проверьте, что идея, задания, сценарии, игровые элементы и лонгрид работают на одну учебную задачу и не спорят друг с другом.";
+    const nextStep = audit.conclusionNextStep.trim() || "Если в карте остались пустые или слабые места, вернитесь в нужный модуль и уточните соответствующий фрагмент проекта.";
 
     return `
         <article class="export-conclusion">
             <p>Заключение</p>
-            <h2>Проект собран в интерактивный урок</h2>
+            <h2>${escapeHtml(title)}</h2>
             <p>${status}</p>
-            <p>Используйте эту страницу как цельную карту урока: проверьте, что идея, задания, сценарии, игровые элементы и лонгрид работают на одну учебную задачу и не спорят друг с другом.</p>
+            <p>${escapeHtml(text).replaceAll("\n", "<br>")}</p>
             <ul>
                 <li>Если все фрагменты заполнены и проверка пройдена, экспорт можно отдавать на просмотр или публикацию.</li>
-                <li>Если в карте остались пустые или слабые места, вернитесь в нужный модуль и уточните соответствующий фрагмент проекта.</li>
+                <li>${escapeHtml(nextStep).replaceAll("\n", "<br>")}</li>
             </ul>
         </article>
     `;
