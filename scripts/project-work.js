@@ -2742,8 +2742,8 @@ function renderProjectDashboard() {
                 <span class="tag">${percent}% полей заполнено</span>
             </div>
             <h2>Карта интерактивного урока</h2>
-            <p>Здесь собираются все практические артефакты курса. Заполняйте формы в модулях, а эта страница будет становиться финальной картой вашего интерактивного урока.</p>
-            <div class="progress-meter"><div class="progress-meter__bar" style="width: ${percent}%"></div></div>
+            <p>Это рабочая схема будущего урока: каждый сохраненный модуль добавляет сюда свой фрагмент, а незаполненные части показывают, что еще стоит доделать перед экспортом.</p>
+            <div class="progress-meter"><div class="progress-meter__bar progress-meter__bar--saved" style="width: ${percent}%"></div></div>
         </article>
         ${renderProjectActions()}
         <div class="project-artifacts">${cards}</div>
@@ -2757,8 +2757,8 @@ function renderProjectActions() {
     return `
         <div class="project-export" data-project-actions>
             <button class="button button--primary" type="button" data-export-html>Скачать одностраничный HTML</button>
-            <button class="button button--secondary" type="button" data-export-json>Скачать JSON проекта</button>
-            <button class="button button--secondary" type="button" data-import-json>Импортировать JSON</button>
+            <button class="button button--secondary button--json" type="button" data-export-json>Скачать JSON проекта</button>
+            <button class="button button--secondary button--json" type="button" data-import-json>Импортировать JSON</button>
             <input type="file" accept="application/json,.json" data-import-json-input hidden>
             <span class="artifact-status" data-import-status aria-live="polite"></span>
         </div>

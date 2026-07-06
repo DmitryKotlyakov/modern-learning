@@ -17,6 +17,7 @@
     padding: 0.7rem 1rem;
     font-weight: 800;
     text-decoration: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
 }
 
 .button--primary {
@@ -32,6 +33,18 @@
     color: var(--color-ink);
     border-color: var(--color-line);
     background: var(--color-surface);
+}
+
+.button--json:hover,
+.button--json:focus-visible {
+    border-color: var(--color-blue);
+    box-shadow: 0 8px 22px rgba(47, 111, 187, 0.18);
+    transform: translateY(-1px);
+}
+
+.button--json:focus-visible {
+    outline: 3px solid rgba(47, 111, 187, 0.18);
+    outline-offset: 2px;
 }
 
 .stats-grid {
