@@ -10,6 +10,7 @@ const getCurrentRoute = () => {
 
 const getLinkRoute = (href) => {
     const cleanHref = href.replace(/\/$/, "").replace(/\.html$/, "");
+    if (!cleanHref || cleanHref === ".") return "index";
     return cleanHref.split("/").pop() || "index";
 };
 
