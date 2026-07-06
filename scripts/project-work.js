@@ -2818,6 +2818,7 @@ function exportOnePageHtml() {
 
         return `<article><p>Модуль ${item.moduleId} · ${escapeHtml(item.mechanic)}</p><h2>${escapeHtml(item.artifactTitle)}</h2>${fields}</article>`;
     }).join("");
+    const conclusion = renderExportConclusion();
 
     const html = `<!DOCTYPE html>
 <html lang="ru">
@@ -2831,6 +2832,8 @@ function exportOnePageHtml() {
         h1 { font-size: 42px; line-height: 1.05; }
         article { border: 1px solid #d8ded8; border-radius: 8px; padding: 24px; margin: 20px 0; background: #fff; }
         article > p { color: #115e59; font-weight: 700; }
+        .export-conclusion { border-color: #2f6fbb; background: #f7fbff; }
+        .export-conclusion ul { margin: 12px 0 0; padding-left: 20px; }
         section { border-top: 1px solid #d8ded8; padding-top: 14px; margin-top: 14px; }
         h2, h3 { margin-bottom: 8px; }
         button { min-height: 42px; border: 0; border-radius: 8px; padding: 10px 14px; color: #fff; background: #17806d; font-weight: 700; cursor: pointer; }
@@ -2951,6 +2954,7 @@ function exportOnePageHtml() {
     <p>Экспорт из курса «Механики вовлечения»</p>
     <h1>Карта интерактивного урока</h1>
     ${sections}
+    ${conclusion}
 </main>
 <script>
     let selectedCard = null;
@@ -3536,6 +3540,26 @@ function exportOnePageHtml() {
 </html>`;
 
     downloadFile("interactive-course-project.html", html, "text/html");
+}
+
+function renderExportConclusion() {
+    const audit = normalizeProjectAudit(getArtifact(PROJECT_AUDIT_MODULE_ID));
+    const status = audit.projectChecked
+        ? "Финальная проверка подтверждена в модуле 7."
+        : "Финальная проверка пока не подтверждена в модуле 7.";
+
+    return `
+        <article class="export-conclusion">
+            <p>Заключение</p>
+            <h2>Проект собран в интерактивный урок</h2>
+            <p>${status}</p>
+            <p>Используйте эту страницу как цельную карту урока: проверьте, что идея, задания, сценарии, игровые элементы и лонгрид работают на одну учебную задачу и не спорят друг с другом.</p>
+            <ul>
+                <li>Если все фрагменты заполнены и проверка пройдена, экспорт можно отдавать на просмотр или публикацию.</li>
+                <li>Если в карте остались пустые или слабые места, вернитесь в нужный модуль и уточните соответствующий фрагмент проекта.</li>
+            </ul>
+        </article>
+    `;
 }
 
 function downloadFile(filename, content, type) {
