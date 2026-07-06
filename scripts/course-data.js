@@ -10,8 +10,8 @@ export const modules = [
         artifactFields: [
             { id: "topic", label: "Тема урока", type: "text", placeholder: "Например: вводный урок по клиентскому сервису" },
             { id: "audience", label: "Кто проходит урок", type: "text", placeholder: "Начинающие специалисты, преподаватели, менеджеры..." },
-            { id: "learningGoal", label: "Учебная цель", type: "textarea", placeholder: "Что слушатель должен уметь после урока?" },
-            { id: "linearProblem", label: "Что плохо работает в линейной подаче", type: "textarea", placeholder: "Где слушатель теряет внимание, не тренируется или не получает обратную связь?" },
+            { id: "learningGoal", label: "Учебная цель", type: "textarea", placeholder: "Что вы должны уметь после урока?" },
+            { id: "linearProblem", label: "Что плохо работает в линейной подаче", type: "textarea", placeholder: "Где вы теряете внимание, не тренируетесь или не получаете обратную связь?" },
             { id: "candidateMechanics", label: "Какие механики могут помочь", type: "textarea", placeholder: "Квиз, drag-and-drop, сценарий, интерактивное видео..." }
         ]
     },
@@ -50,7 +50,7 @@ export const modules = [
         practice: "Спроектировать развилки, последствия выбора и переходы между ветками.",
         artifactTitle: "Дерево решений",
         artifactFields: [
-            { id: "situation", label: "Ситуация сценария", type: "textarea", placeholder: "В какую практическую ситуацию попадает слушатель?" },
+            { id: "situation", label: "Ситуация сценария", type: "textarea", placeholder: "В какую практическую ситуацию вы попадаете?" },
             { id: "scenarioNodes", label: "Узлы сценария", type: "scenario-builder", placeholder: "Добавьте до 5 узлов с вариантами выбора, последствиями и переходами." }
         ]
     },
@@ -87,7 +87,7 @@ export const modules = [
         slug: "module-7/",
         mechanic: "QA проекта",
         result: "Финальная проверка собранного урока перед экспортом и публикацией.",
-        practice: "Пройти проект как слушатель, проверить связность, фидбек, нагрузку и устойчивость.",
+        practice: "Пройти проект как новый пользователь, проверить связность, фидбек, нагрузку и устойчивость.",
         artifactTitle: "Финальная проверка проекта",
         artifactFields: [
             { id: "projectChecked", label: "Проект проверен", type: "checkbox", placeholder: "Отметьте финальную проверку проекта." }

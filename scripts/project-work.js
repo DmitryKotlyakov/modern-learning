@@ -50,7 +50,7 @@ const longreadBlockTypes = {
 };
 
 const projectAuditChecks = [
-    "Я прошел проект с начала до конца как новый слушатель.",
+    "Я прошел проект с начала до конца свежим взглядом.",
     "Все механики связаны с материалом: квиз, упражнения, сценарий, геймификация и лонгрид не выглядят отдельными островами.",
     "Фидбек помогает исправить ошибку или понять следующий шаг.",
     "В уроке нет перегруза: сложные интерактивы чередуются с объяснением, примерами или короткими паузами.",
@@ -665,9 +665,9 @@ function renderScenarioBuilderForm(module, content) {
             <h3>Как пользоваться конструктором</h3>
             <ol>
                 <li><strong>Начните с ситуации.</strong> Опишите, кто действует, в каком контексте и какой навык тренирует сценарий. Это будет общий замысел кейса.</li>
-                <li><strong>Добавьте первый узел.</strong> Узел — это один экран сценария: короткая сцена, вопрос к слушателю и варианты действий. Первый узел считается стартом в экспортируемом сайте.</li>
+                <li><strong>Добавьте первый узел.</strong> Узел — это один экран сценария: короткая сцена, вопрос к вам и варианты действий. Первый узел считается стартом в экспортируемом сайте.</li>
                 <li><strong>Заполните варианты выбора.</strong> Для каждого выбора напишите текст кнопки, последствие и тип исхода: удачный, частично удачный или рискованный. Последствие должно показывать, что изменилось после решения, а не просто говорить «верно» или «неверно».</li>
-                <li><strong>Укажите переход.</strong> В поле «Куда ведет выбор» можно написать <code>Узел 2</code>, <code>2</code>, название другого узла или <code>старт</code>. В экспортируемом сайте такой выбор покажет последствие и даст перейти дальше. Если поле оставить пустым, выбор станет финальной точкой: слушатель увидит последствие и сценарий на этом маршруте остановится.</li>
+                <li><strong>Укажите переход.</strong> В поле «Куда ведет выбор» можно написать <code>Узел 2</code>, <code>2</code>, название другого узла или <code>старт</code>. В экспортируемом сайте такой выбор покажет последствие и даст перейти дальше. Если поле оставить пустым, выбор станет финальной точкой: вы увидите последствие и сценарий на этом маршруте остановится.</li>
                 <li><strong>Проверьте дерево.</strong> Пройдите все ветки глазами: у каждого выбора должно быть понятное последствие, а у каждого перехода — существующий узел или осознанное завершение маршрута.</li>
             </ol>
         </div>
@@ -795,10 +795,10 @@ function renderScenarioNodes(container, nodes) {
             </label>
             <label class="quiz-builder__field">
                 <span>Сцена</span>
-                <textarea data-scenario-field="scene" rows="3" placeholder="Что видит слушатель? Какие вводные у ситуации?">${escapeHtml(node.scene)}</textarea>
+                <textarea data-scenario-field="scene" rows="3" placeholder="Что вы видите? Какие вводные у ситуации?">${escapeHtml(node.scene)}</textarea>
             </label>
             <label class="quiz-builder__field">
-                <span>Вопрос к слушателю</span>
+                <span>Вопрос к вам</span>
                 <textarea data-scenario-field="question" rows="2" placeholder="Например: Что должен сделать специалист первым шагом?">${escapeHtml(node.question)}</textarea>
             </label>
             <div class="quiz-builder__options">
@@ -812,7 +812,7 @@ function renderScenarioNodes(container, nodes) {
     `).join("") : `
         <div class="quiz-builder__empty">
             <h3>Пока нет узлов сценария</h3>
-            <p>Добавьте первую развилку: короткую сцену, вопрос к слушателю, 2-4 выбора и последствия каждого выбора.</p>
+            <p>Добавьте первую развилку: короткую сцену, вопрос к вам, 2-4 выбора и последствия каждого выбора.</p>
         </div>
     `;
 }
@@ -826,11 +826,11 @@ function renderScenarioChoice(nodeIndex, choiceIndex, choice, choiceCount) {
             </div>
             <label class="quiz-builder__field">
                 <span>Текст выбора</span>
-                <textarea data-scenario-choice-field="text" rows="2" placeholder="Что нажимает или выбирает слушатель?">${escapeHtml(choice.text)}</textarea>
+                <textarea data-scenario-choice-field="text" rows="2" placeholder="Что вы нажимаете или выбираете?">${escapeHtml(choice.text)}</textarea>
             </label>
             <label class="quiz-builder__field">
                 <span>Последствие</span>
-                <textarea data-scenario-choice-field="consequence" rows="3" placeholder="Что произойдет после выбора? Что увидит слушатель и какой вывод должен сделать?">${escapeHtml(choice.consequence)}</textarea>
+                <textarea data-scenario-choice-field="consequence" rows="3" placeholder="Что произойдет после выбора? Что вы увидите и какой вывод должны сделать?">${escapeHtml(choice.consequence)}</textarea>
             </label>
             <div class="scenario-builder__choice-grid">
                 <label class="quiz-builder__field">
@@ -1241,7 +1241,7 @@ function renderQuizBankForm(module, content) {
             <span class="tag">До ${MAX_QUIZ_QUESTIONS} вопросов</span>
         </div>
         <h2>${escapeHtml(module.artifactTitle)}</h2>
-        <p>Соберите банк вопросов для своего квиза. Добавляйте разные типы заданий, заполняйте варианты ответов, отмечайте правильные ответы и пишите подсказку для слушателя.</p>
+        <p>Соберите банк вопросов для своего квиза. Добавляйте разные типы заданий, заполняйте варианты ответов, отмечайте правильные ответы и пишите подсказку для себя.</p>
         <form class="artifact-form quiz-builder" data-artifact-form data-quiz-bank-form>
             <label class="artifact-field" for="artifact-quizGoal">
                 <span>Что проверяет квиз</span>
@@ -1405,7 +1405,7 @@ function renderQuizQuestion(question, index) {
             ${renderQuestionBody(question, index)}
             <label class="quiz-builder__field">
                 <span>Подсказка или фидбек</span>
-                <textarea data-question-field="hint" rows="3" placeholder="Что увидит слушатель после ответа или ошибки?">${escapeHtml(question.hint ?? "")}</textarea>
+                <textarea data-question-field="hint" rows="3" placeholder="Что вы увидите после ответа или ошибки?">${escapeHtml(question.hint ?? "")}</textarea>
             </label>
         </article>
     `;
@@ -1869,7 +1869,7 @@ function renderLongreadBlocks(container, blocks) {
                     <textarea data-longread-field="content" rows="5" placeholder="${escapeHtml(getLongreadPlaceholder(block.type, "content"))}">${escapeHtml(block.content)}</textarea>
                 </label>
                 <label class="quiz-builder__field">
-                    <span>Действие слушателя</span>
+                    <span>Ваше действие</span>
                     <textarea data-longread-field="action" rows="3" placeholder="${escapeHtml(getLongreadPlaceholder(block.type, "action"))}">${escapeHtml(block.action)}</textarea>
                 </label>
                 <label class="quiz-builder__field">
@@ -1890,15 +1890,15 @@ function getLongreadPlaceholder(type, field) {
     const common = {
         title: "Например: Почему линейный текст теряет внимание",
         content: "Формат: основной текст блока, пример, тезисы или фрагмент лонгрида.",
-        action: "Формат: что делает слушатель в этом месте: читает, отвечает, выбирает переход, фиксирует вывод.",
-        feedback: "Формат: что увидит слушатель после действия или куда перейдет дальше."
+        action: "Формат: что вы делаете в этом месте: читаете, отвечаете, выбираете переход, фиксируете вывод.",
+        feedback: "Формат: что вы увидите после действия или куда перейдете дальше."
     };
     const placeholders = {
         intro: {
             title: "Например: Что будем собирать",
             content: "Формат: 2-4 предложения с контекстом, целью и ожидаемым результатом чтения.",
             action: "Например: Сформулировать, какую проблему должен решить лонгрид.",
-            feedback: "Например: После вступления слушатель переходит к базовой модели темы."
+            feedback: "Например: После вступления вы переходите к базовой модели темы."
         },
         theory: {
             title: "Например: Как работает смысловая остановка",
@@ -1928,7 +1928,7 @@ function getLongreadPlaceholder(type, field) {
             title: "Например: Выбор следующего раздела",
             content: "Формат: 2-3 маршрута или пояснение, зачем нужен следующий шаг.",
             action: "Например: Выбрать: повторить пример, перейти к практике или открыть углубление.",
-            feedback: "Например: Опишите, куда ведет каждый переход и что слушатель там получит."
+            feedback: "Например: Опишите, куда ведет каждый переход и что вы там получите."
         },
         task: {
             title: "Например: Соберите карту своего лонгрида",
@@ -1975,7 +1975,7 @@ function renderInteractionExercises(container, exercises) {
                 <input type="text" data-exercise-field="title" value="${escapeHtml(exercise.title)}" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "title"))}">
             </label>
             <label class="quiz-builder__field">
-                <span>Инструкция для слушателя</span>
+                <span>Инструкция для вас</span>
                 <textarea data-exercise-field="instruction" rows="3" placeholder="${escapeHtml(getInteractionPlaceholder(exercise.type, "instruction"))}">${escapeHtml(exercise.instruction)}</textarea>
             </label>
             <label class="quiz-builder__field">
@@ -2017,14 +2017,14 @@ function getInteractionPlaceholder(type, field) {
     const placeholders = {
         sorting: {
             title: "Например: Сортировка ошибок фидбека",
-            instruction: "Формат: короткая команда для слушателя.\nНапример: Разложите примеры по типам учебных механик.",
+            instruction: "Формат: короткая команда для вас.\nНапример: Разложите примеры по типам учебных механик.",
             items: "Формат: одна карточка на строку.\nНапример:\nОбъяснить ошибку после ответа\nРазнести примеры по категориям\nВосстановить порядок процесса",
             targetStructure: "Формат: Зона: карточка 1, карточка 2\nНазвания карточек должны совпадать с полем выше.\nНапример:\nКвиз: Объяснить ошибку после ответа\nDrag-and-drop: Разнести примеры по категориям, Восстановить порядок процесса",
-            feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Проверьте, какое учебное действие выполняет слушатель: выбирает ответ или распределяет элементы."
+            feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Проверьте, какое учебное действие вы выполняете: выбираете ответ или распределяете элементы."
         },
         ranking: {
             title: "Например: Порядок проектирования drag-and-drop задания",
-            instruction: "Формат: короткая команда для слушателя.\nНапример: Расставьте шаги проектирования в правильной последовательности.",
+            instruction: "Формат: короткая команда для вас.\nНапример: Расставьте шаги проектирования в правильной последовательности.",
             items: "Формат: один шаг на строку. Можно дать шаги в перемешанном порядке.\nНапример:\nПроверить удобство на мобильной ширине\nОпределить учебное действие\nДобавить фидбек\nВыбрать карточки и зоны",
             targetStructure: "Формат: правильный порядок, один шаг на строку.\nТекст шагов должен совпадать с полем выше.\nНапример:\nОпределить учебное действие\nВыбрать карточки и зоны\nПроверить удобство на мобильной ширине\nДобавить фидбек",
             feedback: "Формат: подсказка после ошибки или успеха.\nНапример: Сначала формулируется учебная задача, затем элементы и зоны, потом интерфейс и фидбек."
@@ -2364,7 +2364,7 @@ function renderExportLongread(values) {
                         ${block.action ? `
                             <button type="button" data-longread-toggle="action">Показать действие</button>
                             <div class="export-longread__detail" data-longread-detail="action" hidden>
-                                <p><b>Действие слушателя:</b> ${escapeHtml(block.action).replaceAll("\n", "<br>")}</p>
+                                <p><b>Ваше действие:</b> ${escapeHtml(block.action).replaceAll("\n", "<br>")}</p>
                             </div>
                         ` : ""}
                         ${block.feedback ? `

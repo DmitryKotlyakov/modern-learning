@@ -37,7 +37,7 @@ export const challengeOptions = [
     },
     {
         id: "leaderboard",
-        title: "Рейтинг между слушателями",
+        title: "Рейтинг с другими участниками",
         cost: 2,
         clarity: 0,
         motivation: 1,
