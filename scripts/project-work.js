@@ -3571,23 +3571,15 @@ function exportOnePageHtml() {
 
 function renderExportConclusion() {
     const audit = normalizeProjectAudit(getArtifact(PROJECT_AUDIT_MODULE_ID));
-    const status = audit.projectChecked
-        ? "Финальная проверка подтверждена в модуле 7."
-        : "Финальная проверка пока не подтверждена в модуле 7.";
-    const title = audit.conclusionTitle.trim() || "Проект собран в интерактивный урок";
-    const text = audit.conclusionText.trim() || "Используйте эту страницу как цельную карту урока: проверьте, что идея, задания, сценарии, игровые элементы и лонгрид работают на одну учебную задачу и не спорят друг с другом.";
-    const nextStep = audit.conclusionNextStep.trim() || "Если в карте остались пустые или слабые места, вернитесь в нужный модуль и уточните соответствующий фрагмент проекта.";
+    const title = audit.conclusionTitle.trim() || "Заключение";
+    const text = audit.conclusionText.trim();
+    const nextStep = audit.conclusionNextStep.trim();
 
     return `
         <article class="export-conclusion">
-            <p>Заключение</p>
             <h2>${escapeHtml(title)}</h2>
-            <p>${status}</p>
-            <p>${escapeHtml(text).replaceAll("\n", "<br>")}</p>
-            <ul>
-                <li>Если все фрагменты заполнены и проверка пройдена, экспорт можно отдавать на просмотр или публикацию.</li>
-                <li>${escapeHtml(nextStep).replaceAll("\n", "<br>")}</li>
-            </ul>
+            ${text ? `<p>${escapeHtml(text).replaceAll("\n", "<br>")}</p>` : ""}
+            ${nextStep ? `<section><h3>Следующий шаг</h3><p>${escapeHtml(nextStep).replaceAll("\n", "<br>")}</p></section>` : ""}
         </article>
     `;
 }
