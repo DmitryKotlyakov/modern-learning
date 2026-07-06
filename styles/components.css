@@ -251,12 +251,12 @@ body[data-page="home"] .outcomes-list li::before {
 
 .tag {
     display: inline-flex;
-    border-radius: 999px;
-    padding: 0.25rem 0.6rem;
-    color: var(--color-accent-dark);
-    background: var(--color-accent-soft);
-    font-size: 0.8rem;
-    font-weight: 800;
+    border-left: 2px solid var(--color-line);
+    padding: 0.05rem 0 0.05rem 0.55rem;
+    color: var(--color-muted);
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 700;
 }
 
 .quiz-examples {
