@@ -259,47 +259,6 @@ body[data-page="home"] .outcomes-list li::before {
     font-weight: 700;
 }
 
-.term {
-    position: relative;
-    border-bottom: 1px dotted var(--color-blue);
-    color: inherit;
-    cursor: help;
-}
-
-.term::after {
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 0.55rem);
-    z-index: 20;
-    width: min(280px, 80vw);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-xs);
-    padding: 0.65rem 0.75rem;
-    color: var(--color-ink);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-sm);
-    font-size: 0.88rem;
-    font-weight: 600;
-    line-height: 1.35;
-    text-align: left;
-    transform: translate(-50%, 0.25rem);
-    opacity: 0;
-    pointer-events: none;
-    content: attr(data-definition);
-    transition: opacity 140ms ease, transform 140ms ease;
-}
-
-.term:hover::after,
-.term:focus-visible::after {
-    transform: translate(-50%, 0);
-    opacity: 1;
-}
-
-.term:focus-visible {
-    outline: 2px solid var(--color-blue);
-    outline-offset: 2px;
-}
-
 .quiz-examples {
     display: grid;
     gap: 1rem;
